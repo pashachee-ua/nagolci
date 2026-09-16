@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ArrowUpRight, ArrowDown, Plus, X, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowUpRight, Plus, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import type { SiteContent } from '@/lib/content';
 export default function Portfolio({content:c}:{content:SiteContent}) {
@@ -14,12 +14,12 @@ export default function Portfolio({content:c}:{content:SiteContent}) {
   <img className="wordmark" src="/logo.svg" alt="NA GOLCI" width="1280" height="213"/>
  </header>
  <main>
-  <section className="hero wrap" aria-labelledby="hero-title">
-   <div className="hero-copy"><p className="eyebrow"><span className="red-line"/> Авторське тату · {c.name}</p><h1 id="hero-title">Графіка<br/><em>на шкірі.</em></h1><p className="intro">{c.intro}</p><a className="text-link" href="#works">Переглянути роботи <ArrowDown size={19}/></a><div className="hero-note"><span>NA GOLCI</span><p>Чорнило. Лінія. Характер.</p></div></div>
-   <button className="hero-art" onClick={()=>setActive(0)} aria-label={`Роздивитися: ${c.works[0]?.alt}`}><img src={c.works[0]?.src} alt={c.works[0]?.alt} fetchPriority="high" width="825" height="1100"/><span className="image-label">{c.works[0]?.category} <Plus size={20}/></span><span className="vertical-label">SELECTED WORK / 01</span></button>
+  <section className="intro-section wrap" aria-labelledby="hero-title">
+   <div><p className="eyebrow"><span className="red-line"/> {c.name} · Київ, Поділ</p><h1 id="hero-title">Тату з характером.</h1></div>
+   <div className="intro-description"><p>{c.intro}</p><a className="text-link" href={c.instagram} target="_blank" rel="noreferrer">Обговорити ідею <ArrowUpRight size={18}/></a></div>
   </section>
   <section className="works-section wrap" id="works"><div className="section-heading"><div><p className="eyebrow">01 / Портфоліо</p><h2>На живій шкірі.</h2></div><p className="section-aside">Від тонкої лінії<br/>до насиченого кольору.</p></div>
-   <div className="gallery">{works.map((w,i)=><button key={w.id} className={`work work-${i%6}`} onClick={()=>setActive(i)} aria-label={`Відкрити фото: ${w.alt}`}><div className="work-image"><img src={w.src} alt={w.alt} loading="lazy" width="800" height="1000"/><span className="zoom-icon"><Plus size={23}/></span></div><div className="work-caption"><span>{String(i+1).padStart(2,'0')} / {w.category}</span><span>{w.alt}</span></div></button>)}</div>
+   <div className="gallery">{works.map((w,i)=><button key={w.id} className={`work work-${i%6}`} onClick={()=>setActive(i)} aria-label={`Відкрити фото: ${w.alt}`}><div className="work-image"><img src={w.src} alt={w.alt} loading={i<3?"eager":"lazy"} fetchPriority={i===0?"high":"auto"} width="800" height="1000"/><span className="zoom-icon"><Plus size={23}/></span></div><div className="work-caption"><span>{String(i+1).padStart(2,'0')} / {w.category}</span><span>{w.alt}</span></div></button>)}</div>
    {c.works.length>6&&<button className="more-button" onClick={()=>setExpanded(!expanded)}>{expanded?'Згорнути добірку':`Ще ${c.works.length-6} робіт`} <span>{expanded?'−':'+'}</span></button>}
   </section>
   <section className="artist-section" id="artist"><div className="wrap artist-grid"><div className="artist-copy"><p className="eyebrow">02 / За цими роботами</p><h2>Привіт.<br/>Я {c.name}.</h2><p>{c.biography}</p><a className="text-link" href="https://www.instagram.com/anohin_pavlo/" target="_blank" rel="noreferrer">Особистий Instagram <ArrowUpRight size={19}/></a><div className="artist-signature">NA GOLCI / KYIV</div></div><figure className="portrait"><img src={c.portrait} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331"/><figcaption>{c.name} / Тату-майстер</figcaption></figure></div></section>
