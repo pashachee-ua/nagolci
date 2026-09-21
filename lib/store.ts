@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
-import { initialContent, type SiteContent } from './content';
+import { initialContent, withContactDefaults, type SiteContent } from './content';
 export async function readContent():Promise<{content:SiteContent;revision:number}> {
  const row=await env.DB.prepare('SELECT body, revision FROM site_content WHERE id = ?').bind('uk').first<{body:string;revision:number}>();
- return row?{content:JSON.parse(row.body),revision:row.revision}:{content:initialContent,revision:0};
+ return row?{content:withContactDefaults(JSON.parse(row.body)),revision:row.revision}:{content:initialContent,revision:0};
 }
 export async function saveContent(content:SiteContent,revision:number) {
  const body=JSON.stringify(content),now=new Date().toISOString();

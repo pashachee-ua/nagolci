@@ -1,13 +1,19 @@
 export type Work = { id: string; src: string; alt: string; category: string };
 export type SiteContent = {
  name: string; intro: string; biography: string; price: string; address: string; instagram: string;
+ phone: string; email: string; telegram: string; tiktok: string;
  portrait: string; studio: string; works: Work[];
 };
+export const contactDefaults = {phone:'+380732597665',email:'nagolci@gmail.com',telegram:'https://t.me/Kot_usual',tiktok:'https://www.tiktok.com/@tattoo_nagolci'};
+export function withContactDefaults(content: Partial<SiteContent>): SiteContent {
+ return {...contactDefaults,...content} as SiteContent;
+}
 export const initialContent: SiteContent = {
+ ...contactDefaults,
  name: 'Павло',
  intro: 'Працюю з графікою та кольором. Разом визначимо сюжет, розмір і місце нанесення.',
  biography: 'Привіт! Мене звати Павло, я майстер студії NA GOLCI. Роблю тату вже понад 10 років. Працюю і з чорно-білими, і з кольоровими роботами. Якщо маєш ідею, але ще не знаєш, як вона має виглядати, напиши мені. Обговоримо ескіз, розмір і місце для тату. А якщо це твоє перше татуювання, розповім, як усе проходить, і відповім на запитання.',
- price: 'Ціна залежить від розміру, деталей і місця для тату. Надішли свою ідею в повідомлення студії, щоб уточнити вартість до запису.',
+ price: 'Ціна залежить від розміру, деталей і місця для тату. Щоб уточнити вартість до запису, зв’яжися зі студією зручним для тебе способом.',
  address: 'Київ, вул. Ярославська, 6',
  instagram: 'https://www.instagram.com/nagolci/',
  portrait: '/images/pavlo.webp', studio: '/images/studio.webp',

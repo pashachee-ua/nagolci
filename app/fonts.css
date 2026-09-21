@@ -6,23 +6,23 @@
   src: url(/fonts/cormorant-garamond-600.ttf) format('truetype');
 }
 @font-face {
-  font-family: 'Alegreya Sans';
+  font-family: 'PT Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/pt-serif-400-italic.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'PT Serif';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/alegreya-sans-400.ttf) format('truetype');
+  src: url(/fonts/pt-serif-400-normal.ttf) format('truetype');
 }
 @font-face {
-  font-family: 'Alegreya Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(/fonts/alegreya-sans-500.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Alegreya Sans';
+  font-family: 'PT Serif';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url(/fonts/alegreya-sans-700.ttf) format('truetype');
+  src: url(/fonts/pt-serif-700-normal.ttf) format('truetype');
 }
