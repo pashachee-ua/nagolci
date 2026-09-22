@@ -1,3 +1,4 @@
+import {isMapsUrl,type Review} from './reviews.ts';
 import { withContactDefaults, type SiteContent, type Work } from './content.ts';
 const mediaPattern = /^\/(?:images\/[a-zA-Z0-9_-]+\.webp|api\/media\/[a-f0-9-]+\.(?:jpg|png|webp))$/;
 export function validateContent(value: unknown): SiteContent {
@@ -10,12 +11,20 @@ export function validateContent(value: unknown): SiteContent {
  const instagram=social('instagram',['www.instagram.com','instagram.com']);
  const telegram=social('telegram',['t.me']);
  const tiktok=social('tiktok',['www.tiktok.com','tiktok.com']);
+ const mapsUrl=optional('mapsUrl',1000);if(mapsUrl&&!isMapsUrl(mapsUrl))throw new Error('Потрібне HTTPS-посилання Google Maps.');
+ const openingHours=optional('openingHours',150);
+ if(!Array.isArray(v.reviews)||v.reviews.length>30)throw new Error('Дозволено до 30 відгуків.');
+ const reviewIds=new Set<string>();
+ const reviews:Review[]=v.reviews.map((item:unknown)=>{if(!item||typeof item!=='object')throw new Error('Некоректний відгук.');const r=item as Review;
+ if(typeof r.id!=='string'||!/^[a-zA-Z0-9-]{1,50}$/.test(r.id)||reviewIds.has(r.id))throw new Error('Некоректний ID відгуку.');reviewIds.add(r.id);
+ if(typeof r.author!=='string'||!r.author.trim()||r.author.length>100||typeof r.quote!=='string'||!r.quote.trim()||r.quote.length>600||r.quote.trim().split(/\s+/).length>25||!Number.isInteger(r.rating)||r.rating<1||r.rating>5||typeof r.originalLanguage!=='string'||!r.originalLanguage.trim()||r.originalLanguage.length>40||typeof r.url!=='string'||r.url.length>1000||!isMapsUrl(r.url))throw new Error('Перевір відгук: автор, цитата до 25 слів, оцінка 1–5, мова та Google Maps.');
+ return {id:r.id,author:r.author.trim(),quote:r.quote.trim(),rating:r.rating,originalLanguage:r.originalLanguage.trim(),url:r.url};});
  const phone=optional('phone',30).replace(/[\s()-]/g,'');if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone))throw new Error('Номер має починатися з + та коду країни.');
  const email=optional('email',254);if(email&&!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email))throw new Error('Перевір email.');
  if(!Array.isArray(v.works)||v.works.length<1||v.works.length>100)throw new Error('Галерея має містити від 1 до 100 робіт.');
  const ids=new Set();
  const works:Work[]=v.works.map((w:unknown)=>{if(!w||typeof w!=='object')throw new Error('Некоректна робота.');const a=w as Work;if(typeof a.id!=='string'||!/^[a-zA-Z0-9-]{1,50}$/.test(a.id)||ids.has(a.id))throw new Error('Некоректний ідентифікатор роботи.');ids.add(a.id);if(typeof a.src!=='string'||!mediaPattern.test(a.src)||typeof a.alt!=='string'||!a.alt.trim()||a.alt.length>150||typeof a.category!=='string'||!a.category.trim()||a.category.length>60)throw new Error('Додай опис і напрям для кожного фото.');return {id:a.id,src:a.src,alt:a.alt.trim(),category:a.category.trim()}});
- return {name:str('name',60),intro:str('intro',500),biography:str('biography',1500),price:str('price',1500),address:str('address',250),instagram,phone,email,telegram,tiktok,portrait:media('portrait'),studio:media('studio'),works};
+ return {name:str('name',60),intro:str('intro',500),biography:str('biography',1500),price:str('price',1500),address:str('address',250),instagram,mapsUrl,openingHours,reviews,phone,email,telegram,tiktok,portrait:media('portrait'),studio:media('studio'),works};
 }
 export function detectImage(data:Uint8Array):'jpg'|'png'|'webp'|null {
  if(data[0]===255&&data[1]===216&&data[2]===255)return 'jpg';

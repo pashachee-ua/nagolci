@@ -16,3 +16,16 @@ test('contacts reject invalid formats and disguised social destinations',()=>{
  for(const patch of [{phone:'0732597665'},{email:'a@b'},{telegram:'https://t.me.evil.test/name'},{telegram:'https://user@t.me/name'},{tiktok:'http://www.tiktok.com/@name'},{email:'x@example.com\r\nBcc:y@example.com'},{phone:null}])assert.throws(()=>validateContent({...initialContent,...patch}));
  assert.equal(validateContent({...initialContent,phone:'+380 (73) 259-76-65'}).phone,'+380732597665');
 });
+test('maps, hours and reviews default only when absent',()=>{
+ const legacy={...initialContent} as Partial<typeof initialContent>;delete legacy.mapsUrl;delete legacy.openingHours;delete legacy.reviews;
+ assert.deepEqual(validateContent(legacy),initialContent);
+ const empty=validateContent({...initialContent,mapsUrl:'',openingHours:'',reviews:[]});assert.equal(empty.mapsUrl,'');assert.equal(empty.openingHours,'');assert.deepEqual(empty.reviews,[]);
+});
+test('reviews validate rating, quote limits, unique ids and Google Maps sources',()=>{
+ const r=initialContent.reviews[0];
+ for(const patch of [{rating:0},{rating:6},{rating:2.5},{author:''},{quote:'word '.repeat(26)},{url:'https://maps.app.goo.gl.evil.test/test'},{url:'https://www.google.com/url?q=evil'},{originalLanguage:''}])assert.throws(()=>validateContent({...initialContent,reviews:[{...r,...patch}]}));
+ assert.throws(()=>validateContent({...initialContent,reviews:[r,r]}));
+ assert.throws(()=>validateContent({...initialContent,mapsUrl:'http://maps.app.goo.gl/test'}));
+ assert.equal(validateContent({...initialContent,reviews:[{...r,rating:1}]}).reviews[0].rating,1);
+ assert.equal(initialContent.reviews.length,10);
+});
