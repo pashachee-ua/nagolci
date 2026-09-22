@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { ArrowUpRight, Eye, X, ArrowLeft, ArrowRight, Phone, Mail, Send, Clock } from 'lucide-react';
+import { ArrowUpRight, Eye, X, ArrowLeft, ArrowRight, Phone, Mail, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import Reviews from './reviews';
+import TelegramIcon from './telegram-icon';
 import type { SiteContent } from '@/lib/content';
 function InstagramLink({href,label,className=''}:{href:string;label:string;className?:string}) {
  return <a className={`instagram-link ${className}`} href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}><img src="/icons/instagram.svg" alt="" width="24" height="24"/></a>;
@@ -28,9 +29,9 @@ export default function Portfolio({content:c}:{content:SiteContent}) {
   <section className="details wrap" id="price"><div><h2>Запис<br/>і вартість</h2></div><div className="details-copy"><h3>Як дізнатися ціну</h3><p><BrandText text={c.price}/></p><ol className="steps"><li><span>01</span><div><h4>Твоя ідея</h4><p>Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.</p></div></li><li><span>02</span><div><h4>Розмір і місце</h4><p>Напиши, де буде тату і якого приблизно розміру.</p></div></li><li><span>03</span><div><h4>Обговорення й запис</h4><p>У студії підкажуть ціну, дадуть відповіді на запитання й допоможуть обрати дату.</p></div></li></ol><a className="booking-link" href="#contact">Уточнити вартість <ArrowUpRight size={19}/></a></div></section>
   <Reviews reviews={c.reviews}/>
   <section className="contact-section" id="contact"><div className="wrap contact-grid"><figure className="studio-photo"><img src={c.studio} alt="Інтер’єр студії NA GOLCI" loading="lazy" width="1200" height="900"/></figure><div className="contact-copy"><h2 className="brand-name">NA GOLCI</h2><p className="address"><BrandText text={c.address}/></p>{c.openingHours&&<p className="opening-hours"><Clock size={18} aria-hidden="true"/>{c.openingHours}</p>}{c.mapsUrl&&<a className="text-link" href={c.mapsUrl} target="_blank" rel="noreferrer">Відкрити в Google Maps <ArrowUpRight size={18}/></a>}<div className="contact-bottom"><h3>Зв’язатися зі студією</h3><div className="contact-methods">
-{c.phone&&<a className="contact-method" href={'tel:'+c.phone}><Phone size={21} aria-hidden="true"/><span><small>Телефон</small>{displayPhone(c.phone)}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
-{c.telegram&&<a className="contact-method" href={c.telegram} target="_blank" rel="noreferrer"><Send size={21} aria-hidden="true"/><span><small>Telegram</small>@{new URL(c.telegram).pathname.split('/').filter(Boolean)[0]}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
-{c.email&&<a className="contact-method" href={'mailto:'+c.email}><Mail size={21} aria-hidden="true"/><span><small>Email</small>{c.email}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
+{c.phone&&<a className="contact-method" href={'tel:'+c.phone}><Phone size={21} aria-hidden="true"/><span>{displayPhone(c.phone)}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
+{c.telegram&&<a className="contact-method" href={c.telegram} aria-label={"Telegram: @"+new URL(c.telegram).pathname.split("/").filter(Boolean)[0]} target="_blank" rel="noreferrer"><TelegramIcon/><span>@{new URL(c.telegram).pathname.split('/').filter(Boolean)[0]}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
+{c.email&&<a className="contact-method" href={'mailto:'+c.email}><Mail size={21} aria-hidden="true"/><span>{c.email}</span><ArrowUpRight size={17} aria-hidden="true"/></a>}
 </div>{(c.instagram||c.tiktok)&&<div className="studio-socials">{c.instagram&&<InstagramLink href={c.instagram} label="Instagram студії NA GOLCI"/>}{c.tiktok&&<a className="instagram-link" href={c.tiktok} target="_blank" rel="noreferrer" aria-label="TikTok студії NA GOLCI" title="TikTok студії NA GOLCI"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 2c.3 2.6 1.8 4.2 4.4 4.4v3.3a8.1 8.1 0 0 1-4.4-1.3v7.3a6.7 6.7 0 1 1-5.8-6.6v3.4a3.3 3.3 0 1 0 2.5 3.2V2z"/></svg></a>}</div>}</div></div></div></section>
  </main>
  <footer className="wrap"><a href="#top"><img src="/logo.svg" alt="NA GOLCI" width="200" height="34"/></a><span className="copyright">© {new Date().getFullYear()} <span className="brand-name">NA GOLCI</span><br/><span>Усі права захищено</span></span><a href="#top" className="back-top">Нагору <ArrowUpRight size={17}/></a></footer>
