@@ -17,7 +17,7 @@ export function validateContent(value: unknown): SiteContent {
  const reviewIds=new Set<string>();
  const reviews:Review[]=v.reviews.map((item:unknown)=>{if(!item||typeof item!=='object')throw new Error('Некоректний відгук.');const r=item as Review;
  if(typeof r.id!=='string'||!/^[a-zA-Z0-9-]{1,50}$/.test(r.id)||reviewIds.has(r.id))throw new Error('Некоректний ID відгуку.');reviewIds.add(r.id);
- if(typeof r.author!=='string'||!r.author.trim()||r.author.length>100||typeof r.quote!=='string'||!r.quote.trim()||r.quote.length>600||r.quote.trim().split(/\s+/).length>25||!Number.isInteger(r.rating)||r.rating<1||r.rating>5||typeof r.originalLanguage!=='string'||!r.originalLanguage.trim()||r.originalLanguage.length>40||typeof r.url!=='string'||r.url.length>1000||!isMapsUrl(r.url))throw new Error('Перевір відгук: автор, цитата до 25 слів, оцінка 1–5, мова та Google Maps.');
+ if(typeof r.author!=='string'||!r.author.trim()||r.author.length>100||typeof r.quote!=='string'||!r.quote.trim()||r.quote.length>4000||!Number.isInteger(r.rating)||r.rating<1||r.rating>5||typeof r.originalLanguage!=='string'||!r.originalLanguage.trim()||r.originalLanguage.length>40||typeof r.url!=='string'||r.url.length>1000||!isMapsUrl(r.url))throw new Error('Перевір відгук: автор, текст до 4000 символів, оцінка 1–5, мова та Google Maps.');
  return {id:r.id,author:r.author.trim(),quote:r.quote.trim(),rating:r.rating,originalLanguage:r.originalLanguage.trim(),url:r.url};});
  const phone=optional('phone',30).replace(/[\s()-]/g,'');if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone))throw new Error('Номер має починатися з + та коду країни.');
  const email=optional('email',254);if(email&&!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email))throw new Error('Перевір email.');

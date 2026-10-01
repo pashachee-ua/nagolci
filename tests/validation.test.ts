@@ -23,9 +23,10 @@ test('maps, hours and reviews default only when absent',()=>{
 });
 test('reviews validate rating, quote limits, unique ids and Google Maps sources',()=>{
  const r=initialContent.reviews[0];
- for(const patch of [{rating:0},{rating:6},{rating:2.5},{author:''},{quote:'word '.repeat(26)},{url:'https://maps.app.goo.gl.evil.test/test'},{url:'https://www.google.com/url?q=evil'},{originalLanguage:''}])assert.throws(()=>validateContent({...initialContent,reviews:[{...r,...patch}]}));
+ for(const patch of [{rating:0},{rating:6},{rating:2.5},{author:''},{quote:'x'.repeat(4001)},{url:'https://maps.app.goo.gl.evil.test/test'},{url:'https://www.google.com/url?q=evil'},{originalLanguage:''}])assert.throws(()=>validateContent({...initialContent,reviews:[{...r,...patch}]}));
  assert.throws(()=>validateContent({...initialContent,reviews:[r,r]}));
  assert.throws(()=>validateContent({...initialContent,mapsUrl:'http://maps.app.goo.gl/test'}));
  assert.equal(validateContent({...initialContent,reviews:[{...r,rating:1}]}).reviews[0].rating,1);
- assert.equal(initialContent.reviews.length,10);
+ assert.equal(validateContent({...initialContent,reviews:[{...r,quote:'word '.repeat(26)}]}).reviews[0].quote,'word '.repeat(26).trim());
+ assert.equal(initialContent.reviews.length,15);
 });
