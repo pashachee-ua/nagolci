@@ -2,14 +2,15 @@
 /* eslint-disable next/no-img-element -- Work images are editable local media URLs in the Vinext preview. */
 
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react';
 import type { Work } from '@/lib/content';
 import { momentumStep, releaseVelocity } from './gallery-physics';
+import { keepWordsTogether } from '@/lib/typography';
 
-type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean };
+type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean; position: number; target: number };
 const wrap = (position: number, width: number) => ((position % width) + width) % width;
 
-export default function WorksCarousel({ works, onOpen, active }: { works: Work[]; onOpen: (index: number) => void; active: number | null }) {
+export default function WorksCarousel({ works, onOpen, active, motionPaused, onMotionPausedChange }: { works: Work[]; onOpen: (index: number) => void; active: number | null; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
   const sectionRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -17,25 +18,56 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
   const loopWidthRef = useRef(0);
   const controlFrameRef = useRef<number | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
+
+  const stopDragAnimation = () => {
+    if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+    dragFrameRef.current = null;
+  };
+
+  const startDragAnimation = () => {
+    let previous = performance.now();
+    const animate = (time: number) => {
+      const drag = dragRef.current;
+      const viewport = viewportRef.current;
+      const width = loopWidthRef.current;
+      if (!drag || !viewport || !width) { dragFrameRef.current = null; return; }
+      const elapsed = Math.min(time - previous, 48);
+      previous = time;
+      const follow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1 - Math.exp(-elapsed / 35);
+      drag.position += (drag.target - drag.position) * follow;
+      viewport.scrollLeft = wrap(drag.position, width);
+      dragFrameRef.current = requestAnimationFrame(animate);
+    };
+    dragFrameRef.current = requestAnimationFrame(animate);
+  };
 
   const stopInertia = () => {
     if (inertiaFrameRef.current !== null) cancelAnimationFrame(inertiaFrameRef.current);
     inertiaFrameRef.current = null;
   };
 
-  const startInertia = (initialVelocity: number) => {
+  const startInertia = (initialVelocity: number, remainingDistance = 0) => {
     const viewport = viewportRef.current;
-    if (!viewport || !initialVelocity) return;
+    if (!viewport || (!initialVelocity && Math.abs(remainingDistance) < 0.1)) return;
     let velocity = initialVelocity;
+    let position = viewport.scrollLeft;
+    let remaining = remainingDistance;
     let lastTime = performance.now();
     const animate = (time: number) => {
       const width = loopWidthRef.current;
       if (!width) { inertiaFrameRef.current = null; return; }
-      const step = momentumStep(velocity, Math.min(time - lastTime, 48));
+      const elapsed = Math.min(time - lastTime, 48);
+      const step = momentumStep(velocity, elapsed);
+      const nextRemaining = remaining * Math.exp(-elapsed / 55);
       lastTime = time;
-      viewport.scrollLeft = wrap(viewport.scrollLeft + step.distance, width);
+      // Accumulate fractional movement internally so native scroll rounding
+      // doesn't cut the slow tail of the release animation short.
+      position += step.distance + remaining - nextRemaining;
+      remaining = nextRemaining;
+      viewport.scrollLeft = wrap(position, width);
       velocity = step.velocity;
-      inertiaFrameRef.current = velocity ? requestAnimationFrame(animate) : null;
+      inertiaFrameRef.current = velocity || Math.abs(remaining) > 0.1 ? requestAnimationFrame(animate) : null;
     };
     inertiaFrameRef.current = requestAnimationFrame(animate);
   };
@@ -65,7 +97,7 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
       const elapsed = lastTime ? Math.min(time - lastTime, 64) : 0;
       lastTime = time;
       const width = loopWidthRef.current;
-      if (width && desktop.matches && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && !viewport.matches(':hover') && !sectionRef.current?.querySelector('.wow-gallery-edge:hover, :focus-visible') && document.visibilityState === 'visible') {
+      if (width && !motionPaused && desktop.matches && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && !viewport.matches(':hover') && !sectionRef.current?.querySelector('.wow-gallery-edge:hover, :focus-visible') && document.visibilityState === 'visible') {
         subpixelDistance += elapsed * 0.022;
         const pixels = Math.floor(subpixelDistance);
         if (pixels) {
@@ -99,8 +131,11 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
       controlFrameRef.current = null;
       if (inertiaFrameRef.current !== null) cancelAnimationFrame(inertiaFrameRef.current);
       inertiaFrameRef.current = null;
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+      dragRef.current = null;
     };
-  }, [works, active]);
+  }, [works, active, motionPaused]);
 
   const move = (direction: number) => {
     const viewport = viewportRef.current;
@@ -129,7 +164,7 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
     <div className="wow-section-head wow-shell">
       <div><p className="wow-index">ПОРТФОЛІО</p><h2 id="works-title">РОБОТИ<span>.</span></h2></div>
       <div className="wow-works-side">
-        <p>Графіка, колір та ілюстрація.<br />Кожна робота — окрема історія.</p>
+        <p>{keepWordsTogether('Графіка, колір та ілюстрація.')}<br />Кожна робота — окрема історія.</p><button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span>{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
       </div>
     </div>
     {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The viewport is keyboard-scrollable and contains focusable photo buttons. */}
@@ -139,12 +174,15 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
         event.preventDefault();
         move(event.key === 'ArrowLeft' ? -1 : 1);
       }
-    }} onPointerDown={event => {
+    }} onMouseDown={event => event.preventDefault()} onPointerDown={event => {
       if (!event.isPrimary || event.button !== 0) return;
+      // Focus the carousel without asking the browser to reveal a whole photo.
+      if (event.pointerType === 'mouse') event.currentTarget.focus({ preventScroll: true });
       stopInertia();
+      stopDragAnimation();
       if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
       controlFrameRef.current = null;
-      dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startScroll: event.currentTarget.scrollLeft, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0, moved: false };
+      dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startScroll: event.currentTarget.scrollLeft, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0, moved: false, position: event.currentTarget.scrollLeft, target: event.currentTarget.scrollLeft };
     }} onPointerMove={event => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
@@ -154,6 +192,7 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
         drag.moved = true;
         event.currentTarget.setPointerCapture(event.pointerId);
         event.currentTarget.classList.add('is-dragging');
+        startDragAnimation();
       }
       event.preventDefault();
       const elapsed = event.timeStamp - drag.lastTime;
@@ -163,21 +202,24 @@ export default function WorksCarousel({ works, onOpen, active }: { works: Work[]
       }
       drag.lastX = event.clientX;
       drag.lastTime = event.timeStamp;
-      const width = loopWidthRef.current;
-      event.currentTarget.scrollLeft = width ? wrap(drag.startScroll - delta, width) : drag.startScroll - delta;
+      drag.target = drag.startScroll - delta;
     }} onPointerUp={event => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
       dragRef.current = null;
+      stopDragAnimation();
       event.currentTarget.classList.remove('is-dragging');
       if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       if (drag.moved) {
         ignoreClickRef.current = true;
         window.setTimeout(() => { ignoreClickRef.current = false; }, 0);
-        startInertia(releaseVelocity(drag.velocity, event.timeStamp - drag.lastTime, matchMedia('(prefers-reduced-motion: reduce)').matches));
+        const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reducedMotion && loopWidthRef.current) event.currentTarget.scrollLeft = wrap(drag.target, loopWidthRef.current);
+        startInertia(releaseVelocity(drag.velocity, event.timeStamp - drag.lastTime, reducedMotion), reducedMotion ? 0 : drag.target - drag.position);
       }
     }} onPointerCancel={event => {
       dragRef.current = null;
+      stopDragAnimation();
       event.currentTarget.classList.remove('is-dragging');
     }} onClickCapture={event => {
       if (!ignoreClickRef.current) return;

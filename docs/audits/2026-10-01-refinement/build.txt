@@ -1,0 +1,46 @@
+
+> sites-project@0.1.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.0.13)
+
+[1/5] analyze client references...
+[2K
+transforming...✓ 240 modules transformed.
+rendering chunks...
+✓ built in 369ms
+[2/5] analyze server references...
+[2K
+transforming...✓ 268 modules transformed.
+rendering chunks...
+✓ built in 156ms
+[3/5] build rsc environment...
+[2K
+transforming...✓ 237 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 286ms
+[4/5] build client environment...
+[2K
+transforming...✓ 2072 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 909ms
+[5/5] build ssr environment...
+[2K
+transforming...✓ 276 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 347ms
+[0m
+  Route (app)
+  ┌ ƒ /
+  ├ ƒ /admin
+  ├ λ /api/content
+  ├ λ /api/media/:key
+  └ λ /api/upload
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
