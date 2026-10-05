@@ -3,10 +3,10 @@
 import { useRef } from 'react';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import type { Work } from '@/lib/content';
+import type { PortfolioMedia } from '@/lib/portfolio-media';
 import { swipeDirection } from './carousel-input';
 
-type Props = { works: Work[]; active: number | null; onActiveChange: (index: number | null) => void };
+type Props = { works: PortfolioMedia[]; active: number | null; onActiveChange: (index: number | null) => void };
 export default function WorkLightbox({ works, active, onActiveChange }: Props) {
   const gesture = useRef<{ id: number; x: number; y: number } | null>(null);
   const pointers = useRef(new Set<number>());
@@ -18,13 +18,14 @@ export default function WorkLightbox({ works, active, onActiveChange }: Props) {
   const clear = () => { gesture.current = null; pointers.current.clear(); };
   return <Dialog open={!!work} onOpenChange={open => { if (!open) { clear(); onActiveChange(null); } }}>
     <DialogContent className="lightbox wow-lightbox" showCloseButton={false} onKeyDown={event => {
+      if ((event.target as HTMLElement).tagName === 'VIDEO') return;
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); move(event.key === 'ArrowRight' ? 1 : -1); }
     }}>
-      <div className="lightbox-top"><DialogTitle className="sr-only">{work?.alt}</DialogTitle><DialogClose className="lightbox-close" aria-label="Закрити фото"><X aria-hidden="true" /></DialogClose></div>
-      <DialogDescription className="sr-only">Фото роботи. Стрілки або горизонтальний свайп перемикають зображення. Escape закриває перегляд.</DialogDescription>
+      <div className="lightbox-top"><DialogTitle className="sr-only">{work?.alt}</DialogTitle><DialogClose className="lightbox-close" aria-label="Закрити перегляд"><X aria-hidden="true" /></DialogClose></div>
+      <DialogDescription className="sr-only">Фото або відео роботи. Стрілки або горизонтальний свайп перемикають зображення. Escape закриває перегляд.</DialogDescription>
       {work && <>
         <figure className="wow-lightbox-figure" onPointerDown={event => {
-          if (event.pointerType === 'mouse') return;
+          if (event.pointerType === 'mouse' || (event.target as HTMLElement).tagName === 'VIDEO') return;
           pointers.current.add(event.pointerId);
           if (pointers.current.size !== 1) { gesture.current = null; return; }
           gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
@@ -37,8 +38,8 @@ export default function WorkLightbox({ works, active, onActiveChange }: Props) {
             if (direction) move(direction);
           }
         }} onPointerCancel={clear}>
-          <img className="full-work" src={work.src} alt={work.alt} draggable={false} />
-          <figcaption>{work.category}</figcaption>
+          {work.videoSrc ? <video key={work.id} className="full-work wow-full-video" src={work.videoSrc} poster={work.src} controls autoPlay muted playsInline preload="metadata" aria-label={work.alt} /> : <img className="full-work" src={work.src} alt={work.alt} draggable={false} />}
+          <figcaption>{work.category}{work.sourceUrl && <a href={work.sourceUrl} target="_blank" rel="noreferrer">TikTok ↗</a>}</figcaption>
         </figure>
         {works.length > 1 && <>
           <button className="wow-gallery-edge wow-gallery-edge-prev lightbox-edge" type="button" aria-label="Попередня робота" onClick={() => move(-1)}><ArrowLeft size={34} strokeWidth={1.7} aria-hidden="true" /></button>

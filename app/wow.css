@@ -456,3 +456,21 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
 /* One spacing rule for leading icons in actions and contact links. */
 .wow-social,.wow-socials>.wow-action,.wow-contact-primary,.wow-contact-copy .wow-text-link,.wow-contact-methods>a { gap:12px; }
 .wow-contact-methods>a>svg:first-child { width:20px; height:20px; flex:none; }
+
+/* Local videos sourced from Pavlo's TikTok; original files can replace them. */
+.wow-work-preview { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; pointer-events:none; transition:opacity .25s; }
+.wow-work-preview.is-playing { opacity:1; }
+.wow-video-badge { position:absolute; z-index:2; left:24px; bottom:72px; display:flex; align-items:center; gap:8px; padding:8px 12px; color:var(--wow-cream); background:#090909b0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; pointer-events:none; }
+.wow-lightbox-figure .wow-full-video { height:100dvh; max-height:100dvh; max-width:100vw; width:auto; }
+.wow-lightbox-figure:has(video) figcaption { bottom:72px; padding:20px 18px 12px; pointer-events:none; }
+.wow-lightbox-figure figcaption a { margin-left:16px; pointer-events:auto; text-decoration:underline; text-underline-offset:4px; }
+.wow-process-video-button { position:absolute; z-index:3; top:32px; left:var(--wow-booking-gutter); gap:12px; background:#09090980; }
+@media(prefers-reduced-motion:reduce) { .wow-work-preview { transition:none; } }
+
+.wow-lightbox-figure figcaption a { display:inline-block; white-space:nowrap; }
+@media(max-width:760px) {
+ .wow-works .wow-section-head { top:0; height:100%; padding-top:28px; }
+ .wow-works .wow-motion-toggle { position:absolute; bottom:18px; left:72px; margin:0; pointer-events:auto; background:#090909c0; }
+}
+
+.wow-motion-toggle { width:44px; height:44px; min-height:44px; padding:0; justify-content:center; gap:0; }

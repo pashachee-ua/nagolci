@@ -3,14 +3,15 @@
 
 import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react';
-import type { Work } from '@/lib/content';
-import { momentumStep, releaseVelocity } from './gallery-physics';
+import type { PortfolioMedia } from '@/lib/portfolio-media';
+import WorkPreview from './work-preview';
+import { momentumStep, releaseVelocity, nearestPhotoStart } from './gallery-physics';
 import { keepWordsTogether } from '@/lib/typography';
 
 type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean; position: number; target: number };
 const wrap = (position: number, width: number) => ((position % width) + width) % width;
 
-export default function WorksCarousel({ works, onOpen, active, motionPaused, onMotionPausedChange }: { works: Work[]; onOpen: (index: number) => void; active: number | null; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
+export default function WorksCarousel({ works, onOpen, active, motionPaused, onMotionPausedChange }: { works: PortfolioMedia[]; onOpen: (index: number) => void; active: number | null; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
   const sectionRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -19,6 +20,25 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
   const controlFrameRef = useRef<number | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   const dragFrameRef = useRef<number | null>(null);
+
+  const alignMobile = () => {
+    const viewport = viewportRef.current, width = loopWidthRef.current;
+    if(!viewport || !width || !matchMedia('(max-width:760px)').matches) return;
+    const group = viewport.querySelector('.wow-gallery-group');
+    if(!group) return;
+    const origin=group.getBoundingClientRect().left;
+    const starts=[...group.querySelectorAll('.wow-work')].map(photo=>photo.getBoundingClientRect().left-origin);
+    const start=viewport.scrollLeft, target=nearestPhotoStart(start,starts,width);
+    if(Math.abs(target-start)<1) return;
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches) { viewport.scrollLeft=wrap(target,width); return; }
+    const started=performance.now();
+    const animate=(time:number) => {
+      const progress=Math.min((time-started)/360,1);
+      viewport.scrollLeft=wrap(start+(target-start)*(1-Math.pow(1-progress,3)),width);
+      controlFrameRef.current=progress<1?requestAnimationFrame(animate):null;
+    };
+    controlFrameRef.current=requestAnimationFrame(animate);
+  };
 
   const stopDragAnimation = () => {
     if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
@@ -49,7 +69,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
 
   const startInertia = (initialVelocity: number, remainingDistance = 0) => {
     const viewport = viewportRef.current;
-    if (!viewport || (!initialVelocity && Math.abs(remainingDistance) < 0.1)) return;
+    if (!viewport) return;
+    if (!initialVelocity && Math.abs(remainingDistance) < 0.1) { alignMobile(); return; }
     let velocity = initialVelocity;
     let position = viewport.scrollLeft;
     let remaining = remainingDistance;
@@ -68,6 +89,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       viewport.scrollLeft = wrap(position, width);
       velocity = step.velocity;
       inertiaFrameRef.current = velocity || Math.abs(remaining) > 0.1 ? requestAnimationFrame(animate) : null;
+      if(inertiaFrameRef.current === null) alignMobile();
     };
     inertiaFrameRef.current = requestAnimationFrame(animate);
   };
@@ -88,6 +110,11 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       const previous = loopWidthRef.current;
       if (previous && previous !== width) viewport.scrollLeft *= width / previous;
       loopWidthRef.current = width;
+    };
+    let settleTimer: ReturnType<typeof setTimeout>;
+    const settle = () => {
+      clearTimeout(settleTimer);
+      settleTimer=setTimeout(()=>{ if(!dragRef.current && controlFrameRef.current===null && inertiaFrameRef.current===null) alignMobile(); },150);
     };
     const normalize = () => {
       const width = loopWidthRef.current;
@@ -121,11 +148,14 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     });
     visibility.observe(viewport);
     viewport.addEventListener('scroll', normalize, { passive: true });
+    viewport.addEventListener('scroll', settle, { passive:true });
     measure();
     return () => {
       observer.disconnect();
       visibility.disconnect();
       viewport.removeEventListener('scroll', normalize);
+      viewport.removeEventListener('scroll', settle);
+      clearTimeout(settleTimer);
       cancelAnimationFrame(frame);
       if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
       controlFrameRef.current = null;
@@ -144,7 +174,17 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     stopInertia();
     if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
     const start = viewport.scrollLeft;
-    const distance = direction * viewport.clientWidth * 0.75;
+    let distance = direction * viewport.clientWidth * 0.75;
+    if(matchMedia('(max-width:760px)').matches) {
+      const group=viewport.querySelector('.wow-gallery-group');
+      if(group) {
+        const origin=group.getBoundingClientRect().left;
+        const starts=[...group.querySelectorAll('.wow-work')].map(photo=>photo.getBoundingClientRect().left-origin);
+        const candidates=[...starts.map(x=>x-width),...starts,...starts.map(x=>x+width)];
+        const target=direction>0 ? candidates.find(x=>x>start+2) : candidates.filter(x=>x<start-2).at(-1);
+        if(target!==undefined) distance=target-start;
+      }
+    }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       viewport.scrollLeft = wrap(start + distance, width);
       controlFrameRef.current = null;
@@ -164,7 +204,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     <div className="wow-section-head wow-shell">
       <div><p className="wow-index">ПОРТФОЛІО</p><h2 id="works-title">РОБОТИ<span>.</span></h2></div>
       <div className="wow-works-side">
-        <p>{keepWordsTogether('Графіка, колір та ілюстрація.')}<br />Кожна робота — окрема історія.</p><button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span>{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
+        <p>{keepWordsTogether('Графіка, колір та ілюстрація.')}<br />Кожна робота — окрема історія.</p><button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} aria-label={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} title={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span className="sr-only">{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
       </div>
     </div>
     {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The viewport is keyboard-scrollable and contains focusable photo buttons. */}
@@ -228,8 +268,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       ignoreClickRef.current = false;
     }}>
       <div className="wow-gallery">{[0, 1].map(copy => <div className="wow-gallery-group" key={copy} aria-hidden={copy === 1 ? 'true' : undefined}>
-        {works.map((work, index) => <button className={`wow-work${active === index ? ' is-open' : ''}`} key={work.id} type="button" tabIndex={copy === 1 ? -1 : undefined} onClick={() => onOpen(index)} aria-label={`Відкрити фото: ${work.alt}`} onDragStart={event => event.preventDefault()}>
-          <span className="wow-work-image"><img src={work.src} alt={copy === 1 ? '' : work.alt} loading={copy === 0 && index < 3 ? 'eager' : 'lazy'} decoding="async" draggable={false} width="800" height="1000" /></span>
+        {works.map((work, index) => <button className={`wow-work${active === index ? ' is-open' : ''}`} key={work.id} type="button" tabIndex={copy === 1 ? -1 : undefined} onClick={() => onOpen(index)} aria-label={`Відкрити ${work.videoSrc ? 'відео' : 'фото'}: ${work.alt}`} onDragStart={event => event.preventDefault()}>
+          <WorkPreview work={work} eager={copy === 0 && index < 3} disabled={active !== null} duplicate={copy === 1} />
           <span className="wow-work-caption"><span>{work.category}</span><ArrowUpRight size={22} aria-hidden="true" /></span>
         </button>)}
       </div>)}</div>

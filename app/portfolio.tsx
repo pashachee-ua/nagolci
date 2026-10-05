@@ -1,10 +1,11 @@
 'use client';
 /* eslint-disable next/no-img-element -- Studio images also come from editable local media URLs; keep direct loading in the Vinext preview. */
 
-import { useLayoutEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, Clock } from 'lucide-react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDown, ArrowUpRight, Clock, Play } from 'lucide-react';
 import type { SiteContent } from '@/lib/content';
 import Reviews from './reviews';
+import { galleryMedia, processMedia } from '@/lib/portfolio-media';
 import TelegramIcon from './telegram-icon';
 import { MailFilledIcon, PhoneFilledIcon, MapPinFilledIcon } from './contact-icons';
 import WorksCarousel from './works-carousel';
@@ -71,6 +72,8 @@ function Ticker({ paused }: { paused: boolean }) {
 export default function Portfolio({ content: c }: { content: SiteContent }) {
   const [motionPaused, setMotionPaused] = useState(false);
   const [active, setActive] = useState<number | null>(null);
+  const works = useMemo(() => galleryMedia(c.works), [c.works]);
+  const viewerWorks = useMemo(() => [...works, processMedia], [works]);
   const heroWork = c.works.find(work => work.id === '25') ?? c.works[0];
   const telegramHandle = c.telegram ? new URL(c.telegram).pathname.split('/').filter(Boolean)[0] : '';
   const primaryContact = c.telegram ? { href: c.telegram, label: 'Написати в Telegram', icon: <TelegramIcon /> } : c.phone ? { href: `tel:${c.phone}`, label: 'Зателефонувати', icon: <PhoneFilledIcon /> } : c.email ? { href: `mailto:${c.email}`, label: 'Написати на пошту', icon: <MailFilledIcon /> } : null;
@@ -94,7 +97,7 @@ export default function Portfolio({ content: c }: { content: SiteContent }) {
 
       <Ticker paused={motionPaused} />
 
-      <WorksCarousel works={c.works} onOpen={setActive} active={active} motionPaused={motionPaused} onMotionPausedChange={setMotionPaused} />
+      <WorksCarousel works={works} onOpen={setActive} active={active} motionPaused={motionPaused} onMotionPausedChange={setMotionPaused} />
 
       <section className="wow-artist" id="artist" aria-labelledby="artist-title"><div className="wow-shell wow-artist-layout">
         <div className="wow-artist-media"><img className="wow-portrait" src={c.portrait} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331" /></div>
@@ -104,6 +107,7 @@ export default function Portfolio({ content: c }: { content: SiteContent }) {
       <section className="wow-booking" id="price" aria-labelledby="price-title">
         <div className="wow-booking-content">
           <figure className="wow-process-photo"><img src="/images/process.webp" alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
+          <button type="button" className="wow-action wow-process-video-button" onClick={() => setActive(works.length)}><Play size={18} fill="currentColor" aria-hidden="true" /><span>Дивитися процес</span><ArrowUpRight size={18} aria-hidden="true" /></button>
           <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ.<br /><span>НАША РОБОТА.</span></h2></div>
           <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Обговорення й запис</h4><p>{keepWordsTogether('У студії підкажуть ціну, дадуть відповіді на запитання й допоможуть обрати дату.')}</p></div></li></ol><a href="#contact" className="wow-action wow-booking-cta wow-tattoo-cta"><span>Хочу тату</span><ArrowUpRight size={20} aria-hidden="true" /></a></div>
         </div>
@@ -116,6 +120,6 @@ export default function Portfolio({ content: c }: { content: SiteContent }) {
 
     <footer className="wow-footer-region"><div className="wow-footer wow-shell"><a className="wow-logo" href="#top" aria-label="NA GOLCI — нагору"><img src="/logo.svg" alt="NA GOLCI" width="1280" height="213" /></a><span>© {new Date().getFullYear()} NA GOLCI · КИЇВ</span></div><div className="wow-footer-credit"><a className="wow-developer-link" href="https://www.instagram.com/pasha.chee/" target="_blank" rel="noreferrer" aria-label="Сайт зробив @pasha.chee — Instagram"><span>Сайт зробив @pasha.chee</span><ArrowUpRight size={13} aria-hidden="true" /></a></div></footer>
 
-    <WorkLightbox works={c.works} active={active} onActiveChange={setActive} />
+    <WorkLightbox works={viewerWorks} active={active} onActiveChange={setActive} />
   </>;
 }

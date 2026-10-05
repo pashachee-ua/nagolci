@@ -18,3 +18,10 @@ void test('a pause before release or reduced-motion preference removes momentum'
   assert.equal(releaseVelocity(1.5, 20, true), 0);
   assert.equal(releaseVelocity(1.5, 20, false), 1.5);
 });
+
+void test('mobile alignment selects the nearest photo start across the loop seam', async () => {
+ const { nearestPhotoStart } = await import('../app/gallery-physics.ts');
+ assert.equal(nearestPhotoStart(160,[0,300,610],900),300);
+ assert.equal(nearestPhotoStart(820,[0,300,610],900),900);
+ assert.equal(nearestPhotoStart(-60,[0,300,610],900),0);
+});
