@@ -28,5 +28,5 @@ test('reviews validate rating, quote limits, unique ids and Google Maps sources'
  assert.throws(()=>validateContent({...initialContent,mapsUrl:'http://maps.app.goo.gl/test'}));
  assert.equal(validateContent({...initialContent,reviews:[{...r,rating:1}]}).reviews[0].rating,1);
  assert.equal(validateContent({...initialContent,reviews:[{...r,quote:'word '.repeat(26)}]}).reviews[0].quote,'word '.repeat(26).trim());
- assert.equal(initialContent.reviews.length,15);
+ assert.equal(initialContent.reviews.length,17);
 });

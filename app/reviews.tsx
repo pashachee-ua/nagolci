@@ -25,9 +25,9 @@ function ReviewCard({ review }: { review: Review }) {
   const quoteId = `review-quote-${review.id}`;
   return <article className="review-card">
     <div className="review-stars" aria-label={`${review.rating} з 5 зірок`}>{Array.from({ length: 5 }, (_, index) => <Star key={index} size={18} fill={index < review.rating ? 'currentColor' : 'none'} aria-hidden="true" />)}</div>
-    <blockquote id={quoteId} ref={quoteRef} className={expanded ? '' : 'review-quote-collapsed'}>{keepWordsTogether(review.quote)}</blockquote>
+    <blockquote id={quoteId} ref={quoteRef} lang={review.originalLanguage} className={expanded ? '' : 'review-quote-collapsed'}>{keepWordsTogether(review.quote)}</blockquote>
     {isLong && <button className="review-expand" type="button" aria-expanded={expanded} aria-controls={quoteId} onClick={() => setExpanded(value => !value)}>{expanded ? 'Згорнути' : 'Читати повністю'} <span aria-hidden="true">{expanded ? '−' : '+'}</span></button>}
-    <div className="review-credit"><p>{review.author}</p>{review.originalLanguage !== 'uk' && <small>Переклад з {review.originalLanguage === 'ru' ? 'російської' : review.originalLanguage === 'en' ? 'англійської' : review.originalLanguage}</small>}<a href={review.url} target="_blank" rel="noreferrer" aria-label={`Відгук ${review.author} у Google`}>Оригінал у Google <ArrowUpRight size={15} /></a></div>
+    <div className="review-credit"><p>{review.author}</p><a href={review.url} target="_blank" rel="noreferrer" aria-label={`Відгук ${review.author} у Google`}>Оригінал у Google <ArrowUpRight size={15} /></a></div>
   </article>;
 }
 
@@ -101,7 +101,8 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
     else carousel.scrollNext(jump);
   }
 
-  if (!reviews.length) return null;
+  const publishedReviews = reviews.filter(review => review.originalLanguage.toLowerCase() !== 'ru');
+  if (!publishedReviews.length) return null;
 
   return <section className="reviews-section" aria-labelledby="reviews-title" id="reviews">
     <div className="reviews-heading wow-shell">
@@ -116,7 +117,7 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
         move(event.key === 'ArrowRight' ? 1 : -1);
       }
     }}>
-      <div className="reviews-track">{reviews.map(review => <ReviewCard review={review} key={review.id} />)}</div>
+      <div className="reviews-track">{publishedReviews.map(review => <ReviewCard review={review} key={review.id} />)}</div>
     </section>
     <button className="wow-gallery-edge wow-gallery-edge-prev review-edge" type="button" aria-label="Попередні відгуки" disabled={edge.start} onClick={() => move(-1)}><ArrowLeft size={34} strokeWidth={1.7} aria-hidden="true" /></button>
     <button className="wow-gallery-edge wow-gallery-edge-next review-edge" type="button" aria-label="Наступні відгуки" disabled={edge.end} onClick={() => move(1)}><ArrowRight size={34} strokeWidth={1.7} aria-hidden="true" /></button>

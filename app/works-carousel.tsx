@@ -5,8 +5,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react';
 import type { PortfolioMedia } from '@/lib/portfolio-media';
 import WorkPreview from './work-preview';
-import { momentumStep, releaseVelocity, nearestPhotoStart } from './gallery-physics';
-import { keepWordsTogether } from '@/lib/typography';
+import { momentumStep, releaseVelocity } from './gallery-physics';
 
 type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean; position: number; target: number };
 const wrap = (position: number, width: number) => ((position % width) + width) % width;
@@ -20,25 +19,6 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
   const controlFrameRef = useRef<number | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   const dragFrameRef = useRef<number | null>(null);
-
-  const alignMobile = () => {
-    const viewport = viewportRef.current, width = loopWidthRef.current;
-    if(!viewport || !width || !matchMedia('(max-width:760px)').matches) return;
-    const group = viewport.querySelector('.wow-gallery-group');
-    if(!group) return;
-    const origin=group.getBoundingClientRect().left;
-    const starts=[...group.querySelectorAll('.wow-work')].map(photo=>photo.getBoundingClientRect().left-origin);
-    const start=viewport.scrollLeft, target=nearestPhotoStart(start,starts,width);
-    if(Math.abs(target-start)<1) return;
-    if(matchMedia('(prefers-reduced-motion:reduce)').matches) { viewport.scrollLeft=wrap(target,width); return; }
-    const started=performance.now();
-    const animate=(time:number) => {
-      const progress=Math.min((time-started)/360,1);
-      viewport.scrollLeft=wrap(start+(target-start)*(1-Math.pow(1-progress,3)),width);
-      controlFrameRef.current=progress<1?requestAnimationFrame(animate):null;
-    };
-    controlFrameRef.current=requestAnimationFrame(animate);
-  };
 
   const stopDragAnimation = () => {
     if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
@@ -70,7 +50,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
   const startInertia = (initialVelocity: number, remainingDistance = 0) => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    if (!initialVelocity && Math.abs(remainingDistance) < 0.1) { alignMobile(); return; }
+    if (!initialVelocity && Math.abs(remainingDistance) < 0.1) return;
     let velocity = initialVelocity;
     let position = viewport.scrollLeft;
     let remaining = remainingDistance;
@@ -89,7 +69,6 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       viewport.scrollLeft = wrap(position, width);
       velocity = step.velocity;
       inertiaFrameRef.current = velocity || Math.abs(remaining) > 0.1 ? requestAnimationFrame(animate) : null;
-      if(inertiaFrameRef.current === null) alignMobile();
     };
     inertiaFrameRef.current = requestAnimationFrame(animate);
   };
@@ -104,6 +83,24 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     let frame = 0;
     let lastTime = 0;
     let subpixelDistance = 0;
+    let touching = false;
+    let resumeAt = 0;
+    let autoScrollPosition: number | null = null;
+    const nativeScroll = matchMedia('(max-width:760px), (pointer:coarse)');
+    const pauseTouch = () => {
+      if (!nativeScroll.matches) return;
+      touching = true;
+      autoScrollPosition = null;
+    };
+    const releaseTouch = () => {
+      touching = false;
+      resumeAt = performance.now() + 2000;
+    };
+    const pauseNativeScroll = () => {
+      if (nativeScroll.matches && (autoScrollPosition === null || Math.abs(viewport.scrollLeft - autoScrollPosition) > 1)) {
+        resumeAt = performance.now() + 2000;
+      }
+    };
     const measure = () => {
       const width = firstGroup.getBoundingClientRect().width;
       if (!width) return;
@@ -111,25 +108,24 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       if (previous && previous !== width) viewport.scrollLeft *= width / previous;
       loopWidthRef.current = width;
     };
-    let settleTimer: ReturnType<typeof setTimeout>;
-    const settle = () => {
-      clearTimeout(settleTimer);
-      settleTimer=setTimeout(()=>{ if(!dragRef.current && controlFrameRef.current===null && inertiaFrameRef.current===null) alignMobile(); },150);
-    };
     const normalize = () => {
       const width = loopWidthRef.current;
-      if (width && viewport.scrollLeft >= width) viewport.scrollLeft -= width;
+      if (desktop.matches && width && viewport.scrollLeft >= width) viewport.scrollLeft -= width;
     };
     const advance = (time: number) => {
       const elapsed = lastTime ? Math.min(time - lastTime, 64) : 0;
       lastTime = time;
       const width = loopWidthRef.current;
-      if (width && !motionPaused && desktop.matches && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && !viewport.matches(':hover') && !sectionRef.current?.querySelector('.wow-gallery-edge:hover, :focus-visible') && document.visibilityState === 'visible') {
+      const inputReady = nativeScroll.matches
+        ? !touching && time >= resumeAt
+        : desktop.matches && !viewport.matches(':hover') && !sectionRef.current?.querySelector('.wow-gallery-edge:hover, :focus-visible');
+      if (width && !motionPaused && inputReady && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && document.visibilityState === 'visible') {
         subpixelDistance += elapsed * 0.022;
         const pixels = Math.floor(subpixelDistance);
         if (pixels) {
           subpixelDistance -= pixels;
           viewport.scrollLeft = Math.floor(wrap(Math.round(viewport.scrollLeft) + pixels, width));
+          autoScrollPosition = viewport.scrollLeft;
         }
       }
       frame = requestAnimationFrame(advance);
@@ -148,14 +144,19 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     });
     visibility.observe(viewport);
     viewport.addEventListener('scroll', normalize, { passive: true });
-    viewport.addEventListener('scroll', settle, { passive:true });
+    viewport.addEventListener('scroll', pauseNativeScroll, { passive: true });
+    viewport.addEventListener('pointerdown', pauseTouch, { passive: true });
+    window.addEventListener('pointerup', releaseTouch, { passive: true });
+    window.addEventListener('pointercancel', releaseTouch, { passive: true });
     measure();
     return () => {
       observer.disconnect();
       visibility.disconnect();
       viewport.removeEventListener('scroll', normalize);
-      viewport.removeEventListener('scroll', settle);
-      clearTimeout(settleTimer);
+      viewport.removeEventListener('scroll', pauseNativeScroll);
+      viewport.removeEventListener('pointerdown', pauseTouch);
+      window.removeEventListener('pointerup', releaseTouch);
+      window.removeEventListener('pointercancel', releaseTouch);
       cancelAnimationFrame(frame);
       if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
       controlFrameRef.current = null;
@@ -174,16 +175,11 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     stopInertia();
     if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
     const start = viewport.scrollLeft;
-    let distance = direction * viewport.clientWidth * 0.75;
-    if(matchMedia('(max-width:760px)').matches) {
-      const group=viewport.querySelector('.wow-gallery-group');
-      if(group) {
-        const origin=group.getBoundingClientRect().left;
-        const starts=[...group.querySelectorAll('.wow-work')].map(photo=>photo.getBoundingClientRect().left-origin);
-        const candidates=[...starts.map(x=>x-width),...starts,...starts.map(x=>x+width)];
-        const target=direction>0 ? candidates.find(x=>x>start+2) : candidates.filter(x=>x<start-2).at(-1);
-        if(target!==undefined) distance=target-start;
-      }
+    const distance = direction * viewport.clientWidth * 0.75;
+    if (matchMedia('(max-width:760px), (pointer:coarse)').matches) {
+      viewport.scrollBy({ left: distance, behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth' });
+      controlFrameRef.current = null;
+      return;
     }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       viewport.scrollLeft = wrap(start + distance, width);
@@ -204,7 +200,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     <div className="wow-section-head wow-shell">
       <div><p className="wow-index">ПОРТФОЛІО</p><h2 id="works-title">РОБОТИ<span>.</span></h2></div>
       <div className="wow-works-side">
-        <p>{keepWordsTogether('Графіка, колір та ілюстрація.')}<br />Кожна робота — окрема історія.</p><button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} aria-label={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} title={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span className="sr-only">{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
+        <button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} aria-label={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} title={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span className="sr-only">{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
       </div>
     </div>
     {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The viewport is keyboard-scrollable and contains focusable photo buttons. */}
@@ -214,8 +210,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
         event.preventDefault();
         move(event.key === 'ArrowLeft' ? -1 : 1);
       }
-    }} onMouseDown={event => event.preventDefault()} onPointerDown={event => {
-      if (!event.isPrimary || event.button !== 0) return;
+    }} onMouseDown={event => { if (!matchMedia('(max-width:760px), (pointer:coarse)').matches) event.preventDefault(); }} onPointerDown={event => {
+      if (!event.isPrimary || event.button !== 0 || event.pointerType !== 'mouse' || matchMedia('(max-width:760px), (pointer:coarse)').matches) return;
       // Focus the carousel without asking the browser to reveal a whole photo.
       if (event.pointerType === 'mouse') event.currentTarget.focus({ preventScroll: true });
       stopInertia();
