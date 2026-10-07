@@ -99,9 +99,16 @@ Node.js 22.13+ (например NODE_VERSION=24). Pages автоматичес�
 
 В production build secrets установить BUILD_ORIGIN (админка), BUILD_TOKEN,
 CF_ACCESS_CLIENT_ID и CF_ACCESS_CLIENT_SECRET. Не копировать production credentials
-в preview; отключить preview branch builds. Создать production deploy hook,
+в preview. В Pages → Build → Branch control **выключить Enable automatic production
+branch deployments**, Preview branch → None.
+[Отключение автоматических deployments](https://developers.cloudflare.com/pages/configuration/git-integration/#disable-automatic-deployments).
+Публикации запускаются исключительно hook из админки; после изменения кода и его
+интеграции в main тоже нажать «Опублікувати». Не использовать параллельно dashboard
+Retry, ручные builds или Direct Upload: они обходят блокировку выпуска. Если такой
+билд случайно стартовал, второй deployment не получит snapshot уже привязанного
+выпуска. Создать production deploy hook,
 записать его Worker secret. [Deploy Hooks](https://developers.cloudflare.com/pages/configuration/deploy-hooks/).
-Автоматический первый build до наличия снимка должен завершиться ошибкой —
+Первый build, если Pages запускает его при подключении до наличия снимка, должен завершиться ошибкой —
 безопасного fallback на seed нет. После настройки hook сохранить/проверить импорт
 в админке и нажать «Опублікувати»: этот первый выпуск создаст снимок и запустит build.
 
@@ -114,7 +121,7 @@ CF_ACCESS_CLIENT_ID и CF_ACCESS_CLIENT_SECRET. Не копировать produc
 При 4xx hook или точной ошибке deployment появляется повтор. При сетевом timeout
 статус unknown остаётся заблокированным: провайдер мог принять запрос. Проверить
 Pages jobs/deployments и манифесты, не запускать ещё один hook вслепую. Если сборка
-не дошла до build API, hook job может не разрешиться в deployment ID; требуется
+не дошла до build API, hook job сохраняется отдельно от deployment ID и может не разрешиться в него; требуется
 оператор. Только после доказанного отсутствия активной сборки можно адресно
 обновить эту запись D1 в failed (по ID), сохранив аудит причины. При реально
 успешном выпуске исправить PUBLIC_ORIGIN/API доступ и обновить статус в UI.

@@ -8,7 +8,8 @@ test('provider associates a build URL with its real deployment, not an arbitrary
  const fetcher=async()=>Response.json({success:true,result:[{id:'deployment-1',environment:'production',created_on:'2026-10-07T00:01:00Z',url:'https://1234.nagolci.pages.dev',latest_stage:{name:'build',status:'active'}}]});
  const p=pagesProvider(env,fetcher as typeof fetch);
  assert.equal((await p.attachBuild!(publication,'https://1234.nagolci.pages.dev')).deploymentId,'deployment-1');
- assert.equal((await p.attachBuild!(publication,'https://evil.test')).deploymentId,null);
+ await assert.rejects(p.attachBuild!(publication,'https://evil.test'));
+ await assert.rejects(p.attachBuild!({...publication,deploymentId:'other-deployment'},'https://1234.nagolci.pages.dev'));
 });
 test('provider confirms both immutable deployment and live manifest before reporting success',async()=>{
  let liveId='old';

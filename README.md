@@ -25,7 +25,9 @@
 Для разработки только интерфейса есть `dev:admin:ui`; API ему нужен отдельно.
 Браузерный сценарий: [tests/editor-publication.md](tests/editor-publication.md).
 
-Production принимает только `--remote`: нужны BUILD_ORIGIN, BUILD_TOKEN и Access
+Production deployments запускает только кнопка публикации через hook; автоматические
+Git builds должны быть отключены (включая production). После push кода нужен новый
+выпуск из админки. Production принимает только `--remote`: нужны BUILD_ORIGIN, BUILD_TOKEN и Access
 service credentials. Сбой источника или отсутствие фото останавливает сборку;
 предыдущие готовые файлы сохраняются. `--seed` не используется как запасной вариант.
 

@@ -12,7 +12,7 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "db:generate": "drizzle-kit generate",
-    "build:public": "node scripts/build-public.mjs",
+    "build:public": "node --experimental-strip-types scripts/build-public.mjs",
     "test": "node --experimental-strip-types --test --test-concurrency=1 tests/*.test.ts",
     "build:admin": "vite build --config vite.admin.config.ts",
     "dev:admin": "node scripts/dev-preview.mjs admin",

@@ -45,3 +45,32 @@ test('definitive failure permits retry but uncertain hook timeout remains locked
  const draft=await (await f.call(f.request('/api/content'))).json() as any;assert.equal(draft.revision,1);
  }finally{await f.dispose()}
 });
+test('stale reconciliation and late hook completion cannot erase the attached deployment',async()=>{
+ const f=await workerFixture();f.env.BUILD_TOKEN='test-build-token-at-least-16';
+ let finishHook!:(value:{jobId:string|null})=>void;const hook=new Promise<{jobId:string|null}>(resolve=>{finishHook=resolve});
+ let enterHook!:()=>void;const entered=new Promise<void>(resolve=>{enterHook=resolve});
+ let finishPoll!:()=>void;let enteredPoll!:()=>void;const polling=new Promise<void>(resolve=>{enteredPoll=resolve});let pause=false;
+ const provider:PublicationProvider={request:async()=>{enterHook();return hook},attachBuild:async p=>({...p,deploymentId:'deployment-1'}),reconcile:async p=>{if(pause){enteredPoll();await new Promise<void>(resolve=>{finishPoll=resolve})}return p}};
+ const worker=createWorker({keyResolver:f.keyResolver,provider});const call=(r:Request)=>worker.fetch(r,f.env);
+ const build=()=>call(new Request(f.env.ADMIN_ORIGIN+'/api/build/snapshot',{headers:{Authorization:'Bearer '+f.env.BUILD_TOKEN,'X-Pages-Build-Url':'https://first.nagolci.pages.dev'}}));
+ try{
+ const publish=call(f.request('/api/publications','POST',JSON.stringify({revision:0})));await entered;
+ assert.equal((await build()).status,200);finishHook({jobId:'hook-job-1'});const release=await (await publish).json() as any;
+ // Recreate a stale poll racing with the first attachment.
+ await f.env.DB.prepare("UPDATE publications SET status='queued',deployment_id=NULL WHERE id=?").bind(release.id).run();
+ pause=true;const poll=call(f.request('/api/publications/latest'));await polling;
+ assert.equal((await build()).status,200);finishPoll();const result=await (await poll).json() as any;
+ assert.deepEqual([release.deploymentId,result.deploymentId],['deployment-1','deployment-1'],'late hook and stale poll preserve attachment');
+ }finally{finishHook({jobId:null});finishPoll?.();await f.dispose()}
+});
+test('a second distinct deployment cannot replace the release association',async()=>{
+ const f=await workerFixture();f.env.BUILD_TOKEN='test-build-token-at-least-16';
+ const provider:PublicationProvider={request:async()=>({jobId:'hook-job'}),reconcile:async p=>p,attachBuild:async(p,url)=>({...p,deploymentId:url.includes('first.')?'deployment-1':'deployment-2'})};
+ const worker=createWorker({keyResolver:f.keyResolver,provider});const call=(r:Request)=>worker.fetch(r,f.env);
+ try{
+ await call(f.request('/api/publications','POST',JSON.stringify({revision:0})));
+ const build=(name:string)=>call(new Request(f.env.ADMIN_ORIGIN+'/api/build/snapshot',{headers:{Authorization:'Bearer '+f.env.BUILD_TOKEN,'X-Pages-Build-Url':`https://${name}.nagolci.pages.dev`}}));
+ assert.equal((await build('first')).status,200);assert.equal((await build('second')).status,409);
+ assert.equal(((await (await call(f.request('/api/publications/latest'))).json()) as any).deploymentId,'deployment-1');
+ }finally{await f.dispose()}
+});

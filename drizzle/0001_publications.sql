@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS publications (
  status TEXT NOT NULL,
  created_at TEXT NOT NULL,
  deployment_id TEXT,
+ hook_job_id TEXT,
  error TEXT,
  snapshot TEXT NOT NULL,
  ready INTEGER NOT NULL DEFAULT 0

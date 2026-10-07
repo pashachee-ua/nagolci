@@ -10,7 +10,7 @@ const active="'requesting','queued','building','unknown'";
 type Row={id:string;revision:number;status:Publication['status'];created_at:string;deployment_id:string|null;error:string|null;snapshot:string;ready:number};
 export async function ensurePublications(db:D1Database){
  await ensureContent(db);
- await db.prepare('CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, deployment_id TEXT, error TEXT, snapshot TEXT NOT NULL, ready INTEGER NOT NULL DEFAULT 0)').run();
+ await db.prepare('CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, deployment_id TEXT, hook_job_id TEXT, error TEXT, snapshot TEXT NOT NULL, ready INTEGER NOT NULL DEFAULT 0)').run();
  await db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS one_active_publication ON publications ((1)) WHERE status IN (${active})`).run();
 }
 const publicRow=(r:Row):Publication=>({id:r.id,revision:r.revision,status:r.status,createdAt:r.created_at,deploymentId:r.deployment_id,error:r.error});
@@ -18,8 +18,8 @@ async function latest(env:WorkerEnv):Promise<Row|null>{return env.DB.prepare('SE
 async function reconcileRow(row:Row,env:WorkerEnv,provider:PublicationProvider):Promise<Row>{
  if(!['queued','building','unknown'].includes(row.status)&&!(row.status==='requesting'&&Date.now()-Date.parse(row.created_at)>60000))return row;
  let next:Publication;try{next=await provider.reconcile(publicRow(row))}catch{return row}
- if(next.id!==row.id||next.revision!==row.revision)return row;
- const update=await env.DB.prepare('UPDATE publications SET status=?,deployment_id=?,error=? WHERE id=? AND status=?').bind(next.status,next.deploymentId,next.error,row.id,row.status).run();
+ if(next.id!==row.id||next.revision!==row.revision||(row.deployment_id&&next.deploymentId!==row.deployment_id))return row;
+ const update=await env.DB.prepare('UPDATE publications SET status=?,deployment_id=?,error=? WHERE id=? AND status=? AND deployment_id IS ?').bind(next.status,next.deploymentId,next.error,row.id,row.status,row.deployment_id).run();
  return update.meta.changes===1?{...row,status:next.status,deployment_id:next.deploymentId,error:next.error}:(await env.DB.prepare('SELECT * FROM publications WHERE id=?').bind(row.id).first<Row>())!;
 }
 export async function handlePublications(request:Request,env:WorkerEnv,provider:PublicationProvider):Promise<Response>{
@@ -46,7 +46,7 @@ export async function handlePublications(request:Request,env:WorkerEnv,provider:
  catch{await env.DB.prepare("UPDATE publications SET status='failed',error=? WHERE id=?").bind('Не вдалося підготувати публікацію. Спробуй ще раз.',id).run();return json(publicRow((await latest(env))!))}
  try{
  const result=await provider.request(id);
- await env.DB.prepare("UPDATE publications SET status='queued',deployment_id=? WHERE id=? AND status='requesting'").bind(result.jobId,id).run();
+ await env.DB.prepare("UPDATE publications SET status=CASE WHEN status='requesting' THEN 'queued' ELSE status END,hook_job_id=? WHERE id=?").bind(result.jobId,id).run();
  }catch(e){
  await env.DB.prepare('UPDATE publications SET status=?,error=? WHERE id=? AND status=\'requesting\'').bind(e instanceof PublishRejected?'failed':'unknown',e instanceof PublishRejected?'Не вдалося запустити публікацію. Спробуй ще раз.':'Перевіряємо, чи запущено публікацію. Не запускай її повторно.',id).run();
  }
@@ -62,6 +62,15 @@ export async function handleBuild(request:Request,env:WorkerEnv,provider:Publica
  }
  if(!row?.ready||row.status==='failed')throw new ApiError(409,'Немає підготовленої публікації.');
  const buildUrl=request.headers.get('X-Pages-Build-Url');
- if(buildUrl&&provider.attachBuild){const attached=await provider.attachBuild(publicRow(row),buildUrl);if(attached.deploymentId)await env.DB.prepare('UPDATE publications SET deployment_id=? WHERE id=?').bind(attached.deploymentId,row.id).run()}
+ if(buildUrl){
+ if(!['requesting','queued','building','unknown'].includes(row.status)||!provider.attachBuild)throw new ApiError(409,'Публікація не очікує збірки.');
+ const attached=await provider.attachBuild(publicRow(row),buildUrl);
+ if(!attached.deploymentId)throw new ApiError(503,'Не вдалося визначити збірку.');
+ if(row.deployment_id&&row.deployment_id!==attached.deploymentId)throw new ApiError(409,'До публікації вже прив’язана інша збірка.');
+ if(!row.deployment_id){
+ const update=await env.DB.prepare(`UPDATE publications SET deployment_id=?,status='building' WHERE id=? AND deployment_id IS NULL AND status IN (${active})`).bind(attached.deploymentId,row.id).run();
+ if(update.meta.changes!==1){const current=await env.DB.prepare('SELECT * FROM publications WHERE id=?').bind(row.id).first<Row>();if(!current||current.deployment_id!==attached.deploymentId||!['requesting','queued','building','unknown'].includes(current.status))throw new ApiError(409,'Стан публікації змінився.');}
+ }
+ }
  const object=await env.FILES.get(`snapshots/${row.id}.json`);if(!object)throw new ApiError(503,'Знімок недоступний.');return json(parseSnapshot(JSON.parse(await object.text())));
 }

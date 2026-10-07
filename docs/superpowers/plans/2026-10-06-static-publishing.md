@@ -50,11 +50,11 @@
 - `parseSnapshot(value: unknown): ContentSnapshot` validates metadata and uses existing `validateContent`.
 - `prepareMedia(snapshot: ContentSnapshot, options: { publicDir: string; outputDir: string; readUpload: (key: string) => Promise<Uint8Array> }): Promise<ContentSnapshot>` returns a copy with upload paths mapped to `/media/<key>`; original snapshot remains unchanged.
 
-- [ ] Write failing tests: valid seed survives validation; negative/noninteger revision fails; script-link content fails; a snapshot is not mutated by media preparation.
-- [ ] Write failing tests: referenced seed images and gallery/process videos must exist; upload gets copied once; missing upload fails; traversal, encoded traversal and arbitrary external media URLs fail.
-- [ ] Run `node --experimental-strip-types --test tests/static-snapshot.test.ts tests/static-media.test.ts`; verify failure is missing implementation.
-- [ ] Implement snapshot parsing and media preparation using exact UUID raster keys already accepted by `lib/validation.ts`; enumerate video/poster references from `lib/portfolio-media.ts`.
-- [ ] Run both tests; require zero failures. Commit `feat: prepare immutable static content snapshots`.
+- [x] Write failing tests: valid seed survives validation; negative/noninteger revision fails; script-link content fails; a snapshot is not mutated by media preparation.
+- [x] Write failing tests: referenced seed images and gallery/process videos must exist; upload gets copied once; missing upload fails; traversal, encoded traversal and arbitrary external media URLs fail.
+- [x] Run `node --experimental-strip-types --test tests/static-snapshot.test.ts tests/static-media.test.ts`; verify failure is missing implementation.
+- [x] Implement snapshot parsing and media preparation using exact UUID raster keys already accepted by `lib/validation.ts`; enumerate video/poster references from `lib/portfolio-media.ts`.
+- [x] Run both tests; require zero failures. Commit `feat: prepare immutable static content snapshots`.
 
 ### Task 2: Public HTML and Hydration
 
@@ -66,12 +66,12 @@
 - `build:public` writes `dist/public/index.html`, hashed browser assets, static media, `_headers` and `publication.json` containing revision and publication ID when present.
 - CLI source mode is explicit: `--seed`, `--snapshot <absolute-file>` or `--remote`; remote mode requires server credentials in environment. No ambiguous default or remote-to-seed fallback.
 
-- [ ] Write failing render tests: HTML includes artist name, biography, contacts and reviews; malicious text cannot terminate snapshot script; no admin code or draft API reference is emitted.
-- [ ] Run tests and verify the missing renderer failure.
-- [ ] Add independent Vite browser/SSR-build configurations; build-time renderer imports existing components and CSS; client hydrates the same Portfolio and snapshot. Use a snapshot-derived year consistently if Portfolio currently reads the current clock.
-- [ ] Implement staged output: only replace the previous `dist/public` after validation, render and asset generation succeed; attach existing title, description, favicon, `lang=uk` and `noindex`.
-- [ ] Run render tests and `npm run build:public -- --seed`; inspect HTML for full content and ensure all referenced local files exist.
-- [ ] Serve output with a plain static HTTP server; verify gallery/lightbox, Escape, mobile navigation, reviews and video at 390px and 1440px. Confirm no hydration warnings and no `/api/content` request. Commit `feat: generate static portfolio with React hydration`.
+- [x] Write failing render tests: HTML includes artist name, biography, contacts and reviews; malicious text cannot terminate snapshot script; no admin code or draft API reference is emitted.
+- [x] Run tests and verify the missing renderer failure.
+- [x] Add independent Vite browser/SSR-build configurations; build-time renderer imports existing components and CSS; client hydrates the same Portfolio and snapshot. Use a snapshot-derived year consistently if Portfolio currently reads the current clock.
+- [x] Implement staged output: only replace the previous `dist/public` after validation, render and asset generation succeed; attach existing title, description, favicon, `lang=uk` and `noindex`.
+- [x] Run render tests and `npm run build:public -- --seed`; inspect HTML for full content and ensure all referenced local files exist.
+- [x] Serve output with a plain static HTTP server; verify gallery/lightbox, Escape, mobile navigation, reviews and video at 390px and 1440px. Confirm no hydration warnings and no `/api/content` request. Commit `feat: generate static portfolio with React hydration`.
 
 ### Task 3: Independent Authenticated Editor Backend
 
@@ -84,12 +84,12 @@
 - `handleUpload(request: Request, env: WorkerEnv): Promise<Response>` preserves streaming size and raster signature checks.
 - `GET /api/media/:key` on editor origin is authenticated; public visitors use static copies from Task 1.
 
-- [ ] Write failing auth tests: unsigned JWT, spoofed email, expired token, wrong issuer/audience and disallowed email fail; a valid signed editor token passes; missing configuration fails closed.
-- [ ] Write failing request tests: anonymous/cross-origin writes fail, stale revision returns 409, malformed content and non-raster upload fail, oversized stream returns 413, uploaded image bytes round-trip.
-- [ ] Run tests and confirm missing Worker module failures.
-- [ ] Install and pin a current JWT library compatible with Workers after checking its official documentation; implement JWT validation and exact-origin mutation checks. Refactor D1 helpers to accept bindings explicitly instead of importing `cloudflare:workers` at module scope.
-- [ ] Add separate client build that loads authenticated draft data and reuses Editor. Router returns admin assets only after authentication, returns 404 for unknown API routes and does not serve SPA HTML for API failures.
-- [ ] Run auth/content integration tests with temporary local D1/R2 via Wrangler/Miniflare; require zero failures. Build both public and admin bundles. Commit `feat: separate editor backend and Cloudflare Access authentication`.
+- [x] Write failing auth tests: unsigned JWT, spoofed email, expired token, wrong issuer/audience and disallowed email fail; a valid signed editor token passes; missing configuration fails closed.
+- [x] Write failing request tests: anonymous/cross-origin writes fail, stale revision returns 409, malformed content and non-raster upload fail, oversized stream returns 413, uploaded image bytes round-trip.
+- [x] Run tests and confirm missing Worker module failures.
+- [x] Install and pin a current JWT library compatible with Workers after checking its official documentation; implement JWT validation and exact-origin mutation checks. Refactor D1 helpers to accept bindings explicitly instead of importing `cloudflare:workers` at module scope.
+- [x] Add separate client build that loads authenticated draft data and reuses Editor. Router returns admin assets only after authentication, returns 404 for unknown API routes and does not serve SPA HTML for API failures.
+- [x] Run auth/content integration tests with temporary local D1/R2 via Wrangler/Miniflare; require zero failures. Build both public and admin bundles. Commit `feat: separate editor backend and Cloudflare Access authentication`.
 
 ### Task 4: Publication Snapshots and Provider State
 
@@ -102,12 +102,12 @@
 - `POST /api/publications` takes `{ revision: number }`; atomically reserves the only active publication, records immutable snapshot in R2 and triggers provider. Stale draft returns 409; same active revision returns existing record.
 - `GET /api/publications/latest` returns editor-safe status; `GET /api/build/snapshot` reads the active immutable snapshot using BUILD_TOKEN, never a draft. Build media reads use the same separate credential and restrict keys to that snapshot.
 
-- [ ] Write failing tests with fake provider: saving draft revision N+1 leaves release N unchanged; two publish requests reserve one release; same-revision retries do not call hook twice; different active revision conflicts; no active snapshot denies build access.
-- [ ] Write failing tests: provider acceptance is not success; hook failure preserves draft; timeout enters `unknown` and does not blindly retry; old manifests cannot confirm new releases; confirmed provider success and matching manifest mark succeeded; failed build allows later retry.
-- [ ] Run tests; confirm missing publication service failure.
-- [ ] Implement D1 active-release transaction and R2 snapshot storage with compensation on snapshot failure. Reconcile `requesting`/`unknown` states before allowing a new release; keep historic snapshots. Implement fake provider for local integration and Pages adapter with env-only hook/API credentials.
-- [ ] Add remote build input fetching: capture one active snapshot at start and use its ID for all media requests; fail on unavailable media or auth failure. Confirm live manifest matches exact publication ID before reporting success.
-- [ ] Run publication integration tests and remote-build test against a fake provider/HTTP build endpoint. Commit `feat: publish immutable revisions and reconcile deployment status`.
+- [x] Write failing tests with fake provider: saving draft revision N+1 leaves release N unchanged; two publish requests reserve one release; same-revision retries do not call hook twice; different active revision conflicts; no active snapshot denies build access.
+- [x] Write failing tests: provider acceptance is not success; hook failure preserves draft; timeout enters `unknown` and does not blindly retry; old manifests cannot confirm new releases; confirmed provider success and matching manifest mark succeeded; failed build allows later retry.
+- [x] Run tests; confirm missing publication service failure.
+- [x] Implement D1 active-release transaction and R2 snapshot storage with compensation on snapshot failure. Reconcile `requesting`/`unknown` states before allowing a new release; keep historic snapshots. Implement fake provider for local integration and Pages adapter with env-only hook/API credentials.
+- [x] Add remote build input fetching: capture one active snapshot at start and use its ID for all media requests; fail on unavailable media or auth failure. Confirm live manifest matches exact publication ID before reporting success.
+- [x] Run publication integration tests and remote-build test against a fake provider/HTTP build endpoint. Commit `feat: publish immutable revisions and reconcile deployment status`.
 
 ### Task 5: Draft and Publish User Flow
 
@@ -117,10 +117,10 @@
 - `PublicationControls({ savedRevision: number; dirty: boolean; busy: boolean })` fetches latest status, submits the saved revision and displays server-confirmed states in Ukrainian.
 - Save keeps its `{ revision: number }` result and never invokes publication; successful save says `Зміни збережено як чернетку.`.
 
-- [ ] Write failing browser tests: save changes draft but leaves served static page unchanged; dirty form disables Publish; accepted hook says publication requested; reload preserves pending state; failed build displays retry; only confirmed successful release says published.
-- [ ] Run tests and confirm current Editor's live-save copy fails.
-- [ ] Implement publication controls, bounded polling while pending and cleanup on unmount; update upload/delete wording to refer to publishing. Keep existing dirty-form warning, revision handling and accessible status region.
-- [ ] Verify complete local flow using temporary D1/R2, a signed test identity and fake publication provider: edit, save, publish, build exact snapshot, confirm manifest, refresh static site. Commit `feat: add explicit draft and publish controls`.
+- [x] Write failing browser tests: save changes draft but leaves served static page unchanged; dirty form disables Publish; accepted hook says publication requested; reload preserves pending state; failed build displays retry; only confirmed successful release says published.
+- [x] Run tests and confirm current Editor's live-save copy fails.
+- [x] Implement publication controls, bounded polling while pending and cleanup on unmount; update upload/delete wording to refer to publishing. Keep existing dirty-form warning, revision handling and accessible status region.
+- [x] Verify complete local flow using temporary D1/R2, a signed test identity and fake publication provider: edit, save, publish, build exact snapshot, confirm manifest, refresh static site. Commit `feat: add explicit draft and publish controls`.
 
 ### Task 6: Repeatable Verification and Migration Instructions
 
@@ -130,11 +130,11 @@
 - `check-static-artifact.mjs <artifact-dir>` exits nonzero for missing referenced resources, leftover draft API paths, unexpected secrets or absent public HTML/content marker.
 - Document scripts `dev:public`, `dev:admin`, `build:public`, `build:admin`, `test:publishing`; preserve the legacy Vinext workflow until migration verification is complete.
 
-- [ ] Add artifact checker tests: valid output passes; missing photo, admin secret marker and `/api/media` public references fail. Run red, implement, run green.
-- [ ] Document exact Cloudflare setup order, migration/export of current production data and R2 assets, Access configuration, separate build credentials, Pages hook/status credentials, deploy settings and domain cutover/rollback. Examples use explicit configuration placeholders and refuse production execution until replaced.
-- [ ] Run TypeScript, existing tests, new publishing tests, public/admin builds and artifact checker; verify static browser flow at mobile/wide widths. Record commands and results in `docs/static-publishing-verification.md`.
-- [ ] Obtain whole-branch review using the execution method selected by the user; address actual findings and rerun affected checks.
-- [ ] Commit documentation and verified implementation. Report local readiness separately from cloud deployment readiness; ask only for account/domain values needed to connect the tested result. Do not push or deploy without scope authorization for this implementation branch.
+- [x] Add artifact checker tests: valid output passes; missing photo, admin secret marker and `/api/media` public references fail. Run red, implement, run green.
+- [x] Document exact Cloudflare setup order, migration/export of current production data and R2 assets, Access configuration, separate build credentials, Pages hook/status credentials, deploy settings and domain cutover/rollback. Examples use explicit configuration placeholders and refuse production execution until replaced.
+- [x] Run TypeScript, existing tests, new publishing tests, public/admin builds and artifact checker; verify static browser flow at mobile/wide widths. Record commands and results in `docs/static-publishing-verification.md`.
+- [x] Obtain whole-branch review using the execution method selected by the user; address actual findings and rerun affected checks.
+- [x] Commit documentation and verified implementation. Report local readiness separately from cloud deployment readiness; ask only for account/domain values needed to connect the tested result. Do not push or deploy without scope authorization for this implementation branch.
 
 ## Execution Recommendation
 
