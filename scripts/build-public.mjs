@@ -1,4 +1,5 @@
 import { build } from 'vite';
+import { checkArtifact } from './check-static-artifact.mjs';
 import { readFile, mkdir, mkdtemp, cp, rm, writeFile, rename } from 'node:fs/promises';
 import { resolve, isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -41,6 +42,7 @@ try{
  await writeFile(resolve(staging,'publication.json'),JSON.stringify({id:snapshot.id??null,revision:snapshot.revision,createdAt:snapshot.createdAt}));
  await writeFile(resolve(staging,'_headers'),'/publication.json\n  Cache-Control: no-store\n/\n  Cache-Control: no-cache\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Robots-Tag: noindex, nofollow\n');
  await rm(renderer,{recursive:true});await rm(resolve(staging,'.vite'),{recursive:true});
+ await checkArtifact(staging);
  // Keep the previous artifact until a complete replacement is ready.
  const destination=resolve('dist/public'),backup=resolve('dist/.public-previous');
  await rm(backup,{recursive:true,force:true});

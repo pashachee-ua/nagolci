@@ -41,3 +41,9 @@ next-env.d.ts
 *.tsbuildinfo
 
 .claude/settings.local.json
+
+# Independent admin private settings
+/wrangler.admin.jsonc
+.dev.vars*
+/.worktrees/
+/.superpowers/
