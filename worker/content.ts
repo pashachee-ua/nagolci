@@ -8,7 +8,7 @@ export async function readDraft(db:D1Database):Promise<{content:SiteContent;revi
  return row?{content:validateContent(withContactDefaults(JSON.parse(row.body))),revision:row.revision}:{content:initialContent,revision:0};
 }
 export async function handleContent(request:Request,env:WorkerEnv):Promise<Response>{
- if(request.method==='GET')return json(await readDraft(env.DB));
+ if(request.method==='GET')return json({...await readDraft(env.DB),publicUrl:env.PUBLIC_ORIGIN||null});
  if(request.method!=='PUT')return json({error:'Метод не підтримується.'},405);
  const body=await readJson(request) as {content:unknown;revision:number};
  if(!body||!Number.isSafeInteger(body.revision)||body.revision<0)throw new ApiError(400,'Некоректна версія.');
