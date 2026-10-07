@@ -51,3 +51,5 @@ Cloudflare Access policies, реальные Pages hooks, удалённые D1/
 секреты, DNS и Pages API. Автовосстановление непонятного hook timeout и коррекция
 статуса после ручного rollback требуют оператора; это принятые ограничения.
 
+
+Полный журнал решений: [static-publishing-execution.md](static-publishing-execution.md).
