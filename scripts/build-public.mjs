@@ -12,7 +12,7 @@ let readUpload;
 async function authenticatedFetch(path){
  const origin=process.env.BUILD_ORIGIN;
  if(!origin || !process.env.BUILD_TOKEN || (!origin.startsWith('https://') && !['localhost','127.0.0.1'].includes(new URL(origin).hostname)))throw new Error('Remote build configuration is missing or invalid');
- const response=await fetch(new URL(path,origin),{redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:`Bearer ${process.env.BUILD_TOKEN}`,...(process.env.CF_ACCESS_CLIENT_ID?{'CF-Access-Client-Id':process.env.CF_ACCESS_CLIENT_ID,'CF-Access-Client-Secret':process.env.CF_ACCESS_CLIENT_SECRET??''}:{})}});
+ const response=await fetch(new URL(path,origin),{redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:`Bearer ${process.env.BUILD_TOKEN}`,...(process.env.CF_PAGES_URL?{'X-Pages-Build-Url':process.env.CF_PAGES_URL}:{}),...(process.env.CF_ACCESS_CLIENT_ID?{'CF-Access-Client-Id':process.env.CF_ACCESS_CLIENT_ID,'CF-Access-Client-Secret':process.env.CF_ACCESS_CLIENT_SECRET??''}:{})}});
  if(!response.ok)throw new Error(`Build source unavailable (${response.status})`);return response;
 }
 if(args.length===1&&args[0]==='--seed'){
