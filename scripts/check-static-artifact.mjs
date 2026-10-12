@@ -8,7 +8,7 @@ export async function checkArtifact(directory){
  if(!Number.isSafeInteger(publication.revision)||publication.revision<0)throw new Error('Invalid publication manifest');
  async function resource(value,base=root){
   if(!value||value.startsWith('#')||/^(?:https?:|data:|mailto:|tel:)/i.test(value))return;
-  const clean=decodeURIComponent(value.split(/[?#]/)[0]);const file=resolve(clean.startsWith('/')?root:base,'.'+(clean.startsWith('/')?clean:'/'+clean));
+  const clean=decodeURIComponent(value.split(/[?#]/)[0]);const path=clean==='/'?'/index.html':clean;const file=resolve(path.startsWith('/')?root:base,'.'+(path.startsWith('/')?path:'/'+path));
   let actual;try{actual=await realpath(file);if(!(await stat(actual)).isFile())throw new Error()}catch{throw new Error(`Missing resource: ${clean}`)}
   if(!actual.startsWith(root+sep))throw new Error('Resource escapes artifact');
  }
