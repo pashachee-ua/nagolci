@@ -541,6 +541,7 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
  .wow-work-caption,.wow-video-badge,.wow-lightbox-figure figcaption { font-size:12px; }
  .wow-lightbox-figure:has(video) figcaption { display:flex; flex-direction:column; align-items:center; gap:6px; }
  .wow-lightbox-figure:has(video) figcaption a { margin-left:0; }
+ .wow-address { font-size:20px; line-height:1.5; }
  .wow-footer { flex-direction:column; align-items:center; gap:16px; font-size:11px; text-align:center; }
  .wow-footer>a:first-child { width:160px; }
  .wow-footer>span { text-align:center; }
