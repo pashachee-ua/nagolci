@@ -58,7 +58,9 @@ export default function SiteHeader() {
     return () => { desktop.removeEventListener('change', resize); document.removeEventListener('keydown', escape); };
   }, [menuOpen]);
   return (
-    <header className="wow-header" id="top">
+    <>
+    <div id="top" aria-hidden="true" />
+    <header className="wow-header">
       <div className="wow-header-inner wow-shell">
         <a className="wow-logo" href="#top" aria-label="NA GOLCI — нагору"><img src="/logo.svg" alt="NA GOLCI" width="1280" height="213" /></a>
         <nav className="wow-desktop-nav" aria-label="Основна навігація">{navigation.map(({ id, label }) => <a href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} key={id}>{label}</a>)}</nav>
@@ -70,5 +72,6 @@ export default function SiteHeader() {
       </div>
       {menuOpen && <nav className="wow-mobile-nav" id="mobile-navigation" aria-label="Мобільна навігація">{navigation.map(({id,label}) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} onClick={() => setMenuOpen(false)}>{label}</a>)}</nav>}
     </header>
+    </>
   );
 }
