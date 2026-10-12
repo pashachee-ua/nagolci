@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Clock, Play } from 'lucide-react';
 import type { SiteContent } from '@/lib/content';
 import Reviews from './reviews';
-import { galleryMedia, processMedia } from '@/lib/portfolio-media';
+import { galleryMedia, processMedia, type ImageDimensions } from '@/lib/portfolio-media';
 import TelegramIcon from './telegram-icon';
 import { MailFilledIcon, PhoneFilledIcon, MapPinFilledIcon } from './contact-icons';
 import WorksCarousel from './works-carousel';
@@ -69,7 +69,7 @@ function Ticker({ paused }: { paused: boolean }) {
   </div>;
 }
 
-export default function Portfolio({ content: c, year = new Date().getFullYear() }: { content: SiteContent; year?: number }) {
+export default function Portfolio({ content: c, year = new Date().getFullYear(), imageDimensions }: { content: SiteContent; year?: number; imageDimensions?:ImageDimensions }) {
   const [motionPaused, setMotionPaused] = useState(false);
   const [pageActive, setPageActive] = useState(true);
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear() 
     };
   }, []);
   const [active, setActive] = useState<number | null>(null);
-  const works = useMemo(() => galleryMedia(c.works), [c.works]);
+  const works = useMemo(() => galleryMedia(c.works).map(work=>({...work,...imageDimensions?.[work.src]})), [c.works,imageDimensions]);
   const viewerWorks = useMemo(() => [...works, processMedia], [works]);
   const heroWork = c.works.find(work => work.id === '25') ?? c.works[0];
   const telegramHandle = c.telegram ? new URL(c.telegram).pathname.split('/').filter(Boolean)[0] : '';

@@ -134,6 +134,7 @@ export default function WorksCarousel({ works, onOpen, active, pageActive, motio
     let touching = false;
     let resumeAt = 0;
     let autoScrollPosition: number | null = null;
+    let previousViewportSize: {width:number;height:number} | null = null;
     const nativeScroll = matchMedia('(max-width:760px), (pointer:coarse)');
     const trackMouse = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
@@ -164,7 +165,12 @@ export default function WorksCarousel({ works, onOpen, active, pageActive, motio
       const width = firstGroup.getBoundingClientRect().width;
       if (!width) return;
       const previous = loopWidthRef.current;
-      if (previous && previous !== width) viewport.scrollLeft *= width / previous;
+      const size={width:viewport.clientWidth,height:viewport.clientHeight};
+      const resized=previousViewportSize && (previousViewportSize.width!==size.width || previousViewportSize.height!==size.height);
+      // Reserve intrinsic media ratios in the published page. Only a viewport
+      // resize may scale the position; loading a neighbour must never move it.
+      if (resized && previous && previous !== width) viewport.scrollLeft *= width / previous;
+      previousViewportSize=size;
       loopWidthRef.current = width;
     };
     const normalize = () => {

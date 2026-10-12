@@ -21,3 +21,15 @@ test('missing or malicious media stops preparation',async()=>{
  await assert.rejects(()=>prepareMedia(seed,{...options,publicDir:out}));
  }finally{await rm(out,{recursive:true,force:true})}
 });
+test('gallery dimensions are reserved before loading, including uploaded photos and video posters',async()=>{
+ const out=await mkdtemp(join(tmpdir(),'nagolci-gallery-dimensions-'));
+ const bytes=await readFile('public/images/work-31.webp');
+ const input={...seed,content:{...initialContent,works:[{...initialContent.works[0],src:'/api/media/'+key}]}};
+ try{
+  const result=await prepareMedia(input,{publicDir:'public',outputDir:out,readUpload:async()=>bytes});
+  assert.ok(result.imageDimensions);
+  assert.deepEqual(result.imageDimensions['/media/'+key],{width:1280,height:1280});
+  assert.deepEqual(result.imageDimensions['/images/video-frog.jpg'],{width:576,height:1024});
+  assert.equal('imageDimensions' in input,false);
+ }finally{await rm(out,{recursive:true,force:true})}
+});

@@ -1,5 +1,6 @@
 import type { Work } from './content.ts';
-export type PortfolioMedia = Work & { videoSrc?: string; sourceUrl?: string };
+export type ImageDimensions = Record<string, {width:number;height:number}>;
+export type PortfolioMedia = Work & { videoSrc?: string; sourceUrl?: string; width?:number; height?:number };
 const videos: PortfolioMedia[] = [
  { id:'video-frog', src:'/images/video-frog.jpg', videoSrc:'/videos/frog.mp4', alt:'Samurai Frog — татуювання в русі', category:'Samurai Frog · відео', sourceUrl:'https://www.tiktok.com/@tattoo_nagolci/video/7482819910813469957' },
  { id:'video-ouroboros', src:'/images/video-ouroboros.jpg', videoSrc:'/videos/ouroboros.mp4', alt:'Механічний Уроборос на передпліччі', category:'Механічний Уроборос · відео', sourceUrl:'https://www.tiktok.com/@tattoo_nagolci/video/7344401172146474245' },

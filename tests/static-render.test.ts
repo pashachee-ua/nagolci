@@ -20,6 +20,8 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
  assert.ok(html.includes('Павло'));assert.ok(html.includes('tel:+380732597665'));assert.ok(html.includes('Саша Диденко'));assert.ok(html.includes('Текст &lt;/script&gt;'));
  assert.ok(!html.includes('<script>alert(1)</script>'));assert.ok(!html.includes('/api/content'));assert.ok(!html.includes('/api/media/'));
  const embedded=html.match(/<script id="site-snapshot" type="application\/json">([\s\S]*?)<\/script>/)![1];
+ assert.deepEqual(JSON.parse(embedded).imageDimensions['/images/work-31.webp'],{width:1280,height:1280});
+ assert.match(html,/<img[^>]*src="\/images\/work-31.webp"[^>]*width="1280"[^>]*height="1280"/);
  assert.equal(JSON.parse(embedded).revision,3);assert.ok(embedded.includes('\\u003c'));
  assert.equal(JSON.parse(readFileSync('dist/public/publication.json','utf8')).revision,3);
  const previous=html;

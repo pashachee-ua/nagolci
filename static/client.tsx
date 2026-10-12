@@ -5,4 +5,4 @@ import '../app/fonts.css';
 import '../app/globals.css';
 import '../app/wow.css';
 const snapshot=JSON.parse(document.getElementById('site-snapshot')!.textContent!) as ContentSnapshot;
-hydrateRoot(document.getElementById('root')!,<Portfolio content={snapshot.content} year={new Date(snapshot.createdAt).getUTCFullYear()}/>);
+hydrateRoot(document.getElementById('root')!,<Portfolio content={snapshot.content} imageDimensions={snapshot.imageDimensions} year={new Date(snapshot.createdAt).getUTCFullYear()}/>);

@@ -21,7 +21,7 @@ export default function WorkPreview({ work, eager, prepared, disabled, duplicate
   if(!work.videoSrc || disabled || event.pointerType!=='mouse' || !matchMedia('(hover:hover) and (pointer:fine)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   void video.current?.play().catch(()=>setPlaying(false));
  }} onPointerLeave={stop}>
-  <img src={work.src} alt={duplicate?'':work.alt} loading={eager?'eager':'lazy'} decoding="async" draggable={false} width="800" height="1000" />
+  <img src={work.src} alt={duplicate?'':work.alt} loading={eager?'eager':'lazy'} decoding="async" draggable={false} width={work.width ?? 800} height={work.height ?? 1000} style={work.width && work.height ? {aspectRatio:`${work.width} / ${work.height}`} : undefined} />
   {work.videoSrc && <><video ref={video} className={`wow-work-preview${playing && !disabled?' is-playing':''}`} src={work.videoSrc} preload={prepared && !duplicate ? 'auto' : 'none'} muted loop playsInline aria-hidden="true" tabIndex={-1} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={stop}/><span className="wow-video-badge" aria-hidden="true"><Play size={18} fill="currentColor"/><span>Відео</span></span></>}
  </span>;
 }
