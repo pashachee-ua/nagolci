@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable next/no-img-element -- Studio images also come from editable local media URLs; keep direct loading in the Vinext preview. */
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Clock, Play } from 'lucide-react';
 import type { SiteContent } from '@/lib/content';
 import Reviews from './reviews';
@@ -71,6 +71,19 @@ function Ticker({ paused }: { paused: boolean }) {
 
 export default function Portfolio({ content: c, year = new Date().getFullYear() }: { content: SiteContent; year?: number }) {
   const [motionPaused, setMotionPaused] = useState(false);
+  const [pageActive, setPageActive] = useState(true);
+  useEffect(() => {
+    const update = () => setPageActive(document.visibilityState === 'visible' && document.hasFocus());
+    update();
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('focus', update);
+    window.addEventListener('blur', update);
+    return () => {
+      document.removeEventListener('visibilitychange', update);
+      window.removeEventListener('focus', update);
+      window.removeEventListener('blur', update);
+    };
+  }, []);
   const [active, setActive] = useState<number | null>(null);
   const works = useMemo(() => galleryMedia(c.works), [c.works]);
   const viewerWorks = useMemo(() => [...works, processMedia], [works]);
@@ -95,9 +108,9 @@ export default function Portfolio({ content: c, year = new Date().getFullYear() 
         <span className="wow-hero-side" aria-hidden="true">ГРАФІКА · КОЛІР · ІЛЮСТРАЦІЯ</span>
       </section>
 
-      <Ticker paused={motionPaused} />
+      <Ticker paused={motionPaused || !pageActive} />
 
-      <WorksCarousel works={works} onOpen={setActive} active={active} motionPaused={motionPaused} onMotionPausedChange={setMotionPaused} />
+      <WorksCarousel works={works} onOpen={setActive} active={active} pageActive={pageActive} motionPaused={motionPaused} onMotionPausedChange={setMotionPaused} />
 
       <section className="wow-artist" id="artist" aria-labelledby="artist-title"><div className="wow-shell wow-artist-layout">
         <div className="wow-artist-media"><img className="wow-portrait" src={c.portrait} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331" /></div>

@@ -1,16 +1,17 @@
 'use client';
 /* eslint-disable next/no-img-element -- Work images are editable local media URLs in the Vinext preview. */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react';
 import type { PortfolioMedia } from '@/lib/portfolio-media';
 import WorkPreview from './work-preview';
 import { momentumStep, releaseVelocity } from './gallery-physics';
+import { nearbyMedia } from './gallery-preload';
 
 type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean; position: number; target: number };
 const wrap = (position: number, width: number) => ((position % width) + width) % width;
 
-export default function WorksCarousel({ works, onOpen, active, motionPaused, onMotionPausedChange }: { works: PortfolioMedia[]; onOpen: (index: number) => void; active: number | null; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
+export default function WorksCarousel({ works, onOpen, active, pageActive, motionPaused, onMotionPausedChange }: { works: PortfolioMedia[]; onOpen: (index: number) => void; active: number | null; pageActive: boolean; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
   const sectionRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -19,6 +20,53 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
   const controlFrameRef = useRef<number | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   const dragFrameRef = useRef<number | null>(null);
+  const hoverPauseRef = useRef(false);
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const [preparedMedia, setPreparedMedia] = useState<Set<number>>(() => new Set());
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    let ready = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let idle: number | undefined;
+    let previousScroll = viewport.scrollLeft;
+    let direction = 1;
+    const prepare = () => {
+      timer = undefined;
+      const position = viewport.scrollLeft;
+      const delta = position - previousScroll;
+      // A loop reset should not be mistaken for a backwards swipe.
+      if (Math.abs(delta) > 1 && Math.abs(delta) < loopWidthRef.current / 2) direction = Math.sign(delta);
+      previousScroll = position;
+      const frame = viewport.getBoundingClientRect();
+      const bounds = [...viewport.querySelectorAll('.wow-work')].map(element => element.getBoundingClientRect());
+      const upcoming = nearbyMedia(bounds, frame, works.length, direction);
+      setPreparedMedia(current => upcoming.every(index => current.has(index)) ? current : new Set([...current, ...upcoming]));
+    };
+    const schedule = () => {
+      if (ready && timer === undefined) timer = setTimeout(prepare, 100);
+    };
+    const start = () => {
+      ready = true;
+      if ('requestIdleCallback' in window) idle = window.requestIdleCallback(prepare, { timeout: 1000 });
+      else schedule();
+    };
+    viewport.addEventListener('scroll', schedule, { passive: true });
+    viewport.addEventListener('load', schedule, true);
+    const observer = new ResizeObserver(schedule);
+    observer.observe(viewport);
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+    return () => {
+      window.removeEventListener('load', start);
+      viewport.removeEventListener('scroll', schedule);
+      viewport.removeEventListener('load', schedule, true);
+      observer.disconnect();
+      clearTimeout(timer);
+      if (idle !== undefined) window.cancelIdleCallback(idle);
+    };
+  }, [works]);
 
   const stopDragAnimation = () => {
     if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
@@ -87,6 +135,17 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     let resumeAt = 0;
     let autoScrollPosition: number | null = null;
     const nativeScroll = matchMedia('(max-width:760px), (pointer:coarse)');
+    const trackMouse = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
+      const previous = lastPointerRef.current;
+      const moved = previous
+        ? previous.x !== event.clientX || previous.y !== event.clientY
+        : event.movementX !== 0 || event.movementY !== 0;
+      lastPointerRef.current = { x: event.clientX, y: event.clientY };
+      if (desktop.matches && moved && event.target instanceof Node && sectionRef.current?.contains(event.target)) hoverPauseRef.current = true;
+    };
+    const leaveGallery = () => { hoverPauseRef.current = false; };
+    const section = sectionRef.current;
     const pauseTouch = () => {
       if (!nativeScroll.matches) return;
       touching = true;
@@ -118,8 +177,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       const width = loopWidthRef.current;
       const inputReady = nativeScroll.matches
         ? !touching && time >= resumeAt
-        : desktop.matches && !viewport.matches(':hover') && !sectionRef.current?.querySelector('.wow-gallery-edge:hover, :focus-visible');
-      if (width && !motionPaused && inputReady && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && document.visibilityState === 'visible') {
+        : desktop.matches && !hoverPauseRef.current && !sectionRef.current?.querySelector(':focus-visible');
+      if (width && pageActive && !motionPaused && inputReady && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && document.visibilityState === 'visible') {
         subpixelDistance += elapsed * 0.022;
         const pixels = Math.floor(subpixelDistance);
         if (pixels) {
@@ -134,7 +193,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     observer.observe(viewport);
     observer.observe(firstGroup);
     const visibility = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !frame) {
+      if (entry.isIntersecting && pageActive && !frame) {
         lastTime = 0;
         frame = requestAnimationFrame(advance);
       } else if (!entry.isIntersecting && frame) {
@@ -148,6 +207,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     viewport.addEventListener('pointerdown', pauseTouch, { passive: true });
     window.addEventListener('pointerup', releaseTouch, { passive: true });
     window.addEventListener('pointercancel', releaseTouch, { passive: true });
+    window.addEventListener('pointermove', trackMouse, { passive: true });
+    section?.addEventListener('pointerleave', leaveGallery);
     measure();
     return () => {
       observer.disconnect();
@@ -157,6 +218,8 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       viewport.removeEventListener('pointerdown', pauseTouch);
       window.removeEventListener('pointerup', releaseTouch);
       window.removeEventListener('pointercancel', releaseTouch);
+      window.removeEventListener('pointermove', trackMouse);
+      section?.removeEventListener('pointerleave', leaveGallery);
       cancelAnimationFrame(frame);
       if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
       controlFrameRef.current = null;
@@ -166,7 +229,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
       dragFrameRef.current = null;
       dragRef.current = null;
     };
-  }, [works, active, motionPaused]);
+  }, [works, active, pageActive, motionPaused]);
 
   const move = (direction: number) => {
     const viewport = viewportRef.current;
@@ -265,7 +328,7 @@ export default function WorksCarousel({ works, onOpen, active, motionPaused, onM
     }}>
       <div className="wow-gallery">{[0, 1].map(copy => <div className="wow-gallery-group" key={copy} aria-hidden={copy === 1 ? 'true' : undefined}>
         {works.map((work, index) => <button className={`wow-work${active === index ? ' is-open' : ''}`} key={work.id} type="button" tabIndex={copy === 1 ? -1 : undefined} onClick={() => onOpen(index)} aria-label={`Відкрити ${work.videoSrc ? 'відео' : 'фото'}: ${work.alt}`} onDragStart={event => event.preventDefault()}>
-          <WorkPreview work={work} eager={copy === 0 && index < 3} disabled={active !== null} duplicate={copy === 1} />
+          <WorkPreview work={work} eager={copy === 0 && index < 3 || preparedMedia.has(index)} prepared={preparedMedia.has(index)} disabled={active !== null} duplicate={copy === 1} />
           <span className="wow-work-caption"><span>{work.category}</span><ArrowUpRight size={22} aria-hidden="true" /></span>
         </button>)}
       </div>)}</div>
