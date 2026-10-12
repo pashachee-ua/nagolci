@@ -12,6 +12,10 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
  writeFileSync(snapshot,JSON.stringify({schemaVersion:1,revision:3,createdAt:'2026-10-07T00:00:00Z',content:{...initialContent,biography:'Текст </script><script>alert(1)</script> & < тут'}}));
  execFileSync(process.execPath,['scripts/build-public.mjs','--snapshot',snapshot],{stdio:'pipe'});
  const html=readFileSync('dist/public/index.html','utf8');
+ for(const name of ['cormorant-garamond-600','golos-text-variable']) {
+  assert.ok(html.includes(`<link rel="preload" href="/fonts/${name}.woff2" as="font" type="font/woff2" crossorigin>`));
+  assert.equal(readFileSync(`dist/public/fonts/${name}.woff2`).subarray(0,4).toString(),'wOF2');
+ }
  assert.ok(html.includes('Павло'));assert.ok(html.includes('tel:+380732597665'));assert.ok(html.includes('Саша Диденко'));assert.ok(html.includes('Текст &lt;/script&gt;'));
  assert.ok(!html.includes('<script>alert(1)</script>'));assert.ok(!html.includes('/api/content'));assert.ok(!html.includes('/api/media/'));
  const embedded=html.match(/<script id="site-snapshot" type="application\/json">([\s\S]*?)<\/script>/)![1];

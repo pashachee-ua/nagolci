@@ -9,5 +9,5 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
- return <html lang="uk" className="dark"><body>{children}</body></html>;
+ return <html lang="uk" className="dark"><head><link rel="preload" href="/fonts/cormorant-garamond-600.woff2" as="font" type="font/woff2" crossOrigin="anonymous" /><link rel="preload" href="/fonts/golos-text-variable.woff2" as="font" type="font/woff2" crossOrigin="anonymous" /></head><body>{children}</body></html>;
 }
