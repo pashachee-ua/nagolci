@@ -39,7 +39,7 @@ export default function WorkLightbox({ works, active, onActiveChange }: Props) {
           }
         }} onPointerCancel={clear}>
           {work.videoSrc ? <video key={work.id} className="full-work wow-full-video" src={work.videoSrc} poster={work.src} controls autoPlay muted playsInline preload="metadata" aria-label={work.alt} /> : <img className="full-work" src={work.src} alt={work.alt} draggable={false} />}
-          <figcaption>{work.category}{work.sourceUrl && <a href={work.sourceUrl} target="_blank" rel="noreferrer">TikTok ↗</a>}</figcaption>
+          <figcaption><span>{work.category}</span>{work.sourceUrl && <a href={work.sourceUrl} target="_blank" rel="noreferrer">TikTok ↗</a>}</figcaption>
         </figure>
         {works.length > 1 && <>
           <button className="wow-gallery-edge wow-gallery-edge-prev lightbox-edge" type="button" aria-label="Попередня робота" onClick={() => move(-1)}><ArrowLeft size={34} strokeWidth={1.7} aria-hidden="true" /></button>
