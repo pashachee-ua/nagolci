@@ -5,5 +5,5 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
  plugins:[react()],resolve:{alias:{'@':fileURLToPath(new URL('.',import.meta.url))},dedupe:['react','react-dom']},
  css:{postcss:{plugins:[tailwindcss()]}},
- build:{manifest:true,rollupOptions:{input:'static/client.tsx'}},
+ build:{manifest:true,rollupOptions:{input:['static/client.tsx','static/v2/client.tsx']}},
 });

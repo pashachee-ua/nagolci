@@ -12,6 +12,7 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
  writeFileSync(snapshot,JSON.stringify({schemaVersion:1,revision:3,createdAt:'2026-10-07T00:00:00Z',content:{...initialContent,biography:'Текст </script><script>alert(1)</script> & < тут'}}));
  execFileSync(process.execPath,['scripts/build-public.mjs','--snapshot',snapshot],{stdio:'pipe'});
  const html=readFileSync('dist/public/index.html','utf8');
+ const v2=readFileSync('dist/public/v2/index.html','utf8');
  const notFound=readFileSync('dist/public/404.html','utf8');
  assert.match(notFound, /Сторінку не знайдено/);
  assert.match(notFound, /href="\/"/);
@@ -24,6 +25,11 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
   assert.ok(html.includes(`<link rel="preload" href="/fonts/${name}.woff2" as="font" type="font/woff2" crossorigin>`));
   assert.equal(readFileSync(`dist/public/fonts/${name}.woff2`).subarray(0,4).toString(),'wOF2');
  }
+ // The redesign renders the same snapshot with its own entry and stylesheet.
+ assert.match(v2,/content="noindex, nofollow"/);assert.ok(v2.includes('Саша Диденко'));assert.ok(v2.includes('wow-primary'));assert.ok(!html.includes('wow-primary'));
+ assert.ok(v2.includes('Текст &lt;/script&gt;'));assert.ok(!v2.includes('<script>alert(1)</script>'));
+ assert.notEqual(v2.match(/<script type="module" src="([^"]+)"/)![1],html.match(/<script type="module" src="([^"]+)"/)![1]);
+ assert.match(readFileSync('dist/public/_headers','utf8'),/\/v2\/\n  Cache-Control: no-cache/);
  assert.ok(html.includes('Павло'));assert.ok(html.includes('tel:+380732597665'));assert.ok(html.includes('Саша Диденко'));assert.ok(html.includes('Текст &lt;/script&gt;'));
  assert.ok(!html.includes('<script>alert(1)</script>'));assert.ok(!html.includes('/api/content'));assert.ok(!html.includes('/api/media/'));
  const embedded=html.match(/<script id="site-snapshot" type="application\/json">([\s\S]*?)<\/script>/)![1];
