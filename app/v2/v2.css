@@ -26,8 +26,11 @@
 .wow-primary::before { background:var(--wow-red); transform:translateX(0); }
 .wow-primary:is(:hover,:focus-visible)::before { transform:translateX(101%); }
 .wow-primary:is(:hover,:focus-visible) { color:var(--wow-red); }
-.wow-primary>span { margin-right:auto; white-space:nowrap; font-size:1.12em; }
-.wow-primary>svg:first-child:not(.lucide) { width:20px; height:20px; flex:none; }
+.wow-primary>span { margin-right:auto; padding-right:20px; white-space:nowrap; font-size:1.12em; }
+/* Channel icon: the Telegram mark is drawn small inside its box, so give it more room than the arrow. */
+.wow-primary>svg:first-child:not(.lucide) { width:22px; height:22px; flex:none; }
+/* Arrow weight matches the 800 label. */
+.wow-primary>svg.lucide { stroke-width:2.5; }
 
 /* Secondary: cream outline, cream fill sweep on hover. */
 .wow-secondary>span { margin-right:auto; }
@@ -48,6 +51,7 @@
 
 /* ---------- Header ---------- */
 .wow-header-cta { gap:12px; }
+.wow-header-cta>span { padding-right:0; }
 /* The wordmark is wide but only ~18px tall on phones; pad the link to a 44px tap area without resizing the logo. */
 .wow-header .wow-logo,.wow-footer .wow-logo { display:flex; align-items:center; min-height:44px; }
 .wow-header nav a[aria-current="location"] { color:#fff; }
@@ -165,7 +169,8 @@
 @container artist-actions (max-width:480px) { .wow-artist-actions>.wow-action { flex:none; min-width:0; } }
 
 /* ---------- Booking ---------- */
-.wow-booking-cta { width:min(100%,340px); }
+/* Width follows the label, so the arrow never falls outside; the min keeps short labels from looking cramped. */
+.wow-booking-cta { width:auto; min-width:min(100%,300px); max-width:100%; }
 .wow-booking-note { max-width:380px; margin-top:14px; color:var(--wow-muted); font-size:13px; line-height:1.55; }
 .wow-process-video-button { min-height:48px; padding:12px 18px; background:#090909cc; font-size:12px; }
 .wow-process-video-button>svg { width:16px; height:16px; }
@@ -203,7 +208,7 @@
 }
 
 /* ---------- Contact ---------- */
-.wow-contact-primary { width:min(100%,360px); margin-bottom:0; }
+.wow-contact-copy>.wow-contact-primary { width:auto; min-width:min(100%,320px); max-width:100%; margin-bottom:0; }
 /* Contact order: write (Telegram, then phone/email), then visit (address, hours, map), then socials. */
 .wow-contact-methods { margin-top:24px; }
 .wow-contact-methods>a:last-child { border-bottom:1px solid #474747; }
@@ -249,6 +254,10 @@
   html { scroll-padding-top:var(--wow-sticky-offset); }
 }
 @media (max-width:760px) {
+  .wow-booking-cta,.wow-contact-copy>.wow-contact-primary { width:100%; min-width:0; }
+  /* Narrow phones: tighter padding and gaps first; if the label still does not fit it wraps, keeping both icons in place. */
+  .wow-primary:not(.wow-header-cta) { gap:12px; padding-inline:16px; }
+  .wow-primary:not(.wow-header-cta)>span { min-width:0; padding-right:4px; white-space:normal; text-wrap:balance; line-height:1.25; }
   /* Leave the ticker peeking below the first screen so it reads as scrollable. */
   .wow-hero { --wow-hero-height:clamp(540px,calc(100svh - var(--wow-header-height) - 56px),1100px); }
   .wow-hero-bottom { width:100%; }
