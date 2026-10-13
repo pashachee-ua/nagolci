@@ -167,7 +167,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
       </div></div></section>
     </main>
 
-    <footer className="wow-footer-region"><div className="wow-footer wow-shell"><a className="wow-logo" href="#top" aria-label="NA GOLCI — нагору"><img src="/logo.svg" alt="NA GOLCI" width="1280" height="213" /></a><span>© {year} NA GOLCI · КИЇВ</span></div><div className="wow-footer-credit"><a className="wow-developer-link" href="https://www.instagram.com/pasha.chee/" target="_blank" rel="noreferrer" aria-label="Сайт зробив @pasha.chee — Instagram"><span>Сайт зробив @pasha.chee</span></a></div></footer>
+    <footer className="wow-footer-region"><div className="wow-footer wow-shell"><a className="wow-logo" href="#top" aria-label="NA GOLCI — нагору"><img src="/logo.svg" alt="NA GOLCI" width="1280" height="213" /></a><div className="wow-footer-meta"><span>© {year} NA GOLCI · КИЇВ</span><a className="wow-developer-link" href="https://www.instagram.com/pasha.chee/" target="_blank" rel="noreferrer" aria-label="Сайт зробив @pasha.chee — Instagram"><span>Сайт зробив @pasha.chee</span></a></div></div></footer>
 
     <WorkLightbox works={shownWorks} active={active} onActiveChange={setActive} bookingFor={workBooking} />
     <WorkLightbox works={[processMedia]} active={processOpen ? 0 : null} onActiveChange={index => setProcessOpen(index !== null)} bookingFor={() => booking} />

@@ -278,3 +278,47 @@
   .is-animated .wow-gallery-item:not(.is-revealed) .wow-work { clip-path:none; }
   .is-animated .wow-gallery-item:not(.is-revealed) .wow-work-image img { transform:none; }
 }
+
+/* ---------- Layout fixes from the section-by-section audit ---------- */
+
+/* Hero kicker: each label stays on one line; on narrow phones they stack instead of breaking at the dot. */
+.wow-hero-kicker>span { white-space:nowrap; }
+@media (max-width:420px) {
+  .wow-hero-kicker { flex-direction:column; align-items:flex-start; gap:6px; }
+}
+
+/* Hero actions: both buttons share one width when they stack, and the copy column widens on tablets. */
+.wow-hero-actions .wow-action { flex:1 1 0; min-width:max-content; max-width:280px; }
+@media (max-width:760px) { .wow-hero-actions .wow-action { max-width:none; min-width:0; } }
+@media (min-width:761px) and (max-width:1100px) {
+  .wow-hero-bottom { width:min(64%,560px); }
+}
+
+/* Menu toggle reads as navigation (cream), leaving red to the booking action next to it. */
+.wow-menu-toggle { color:var(--wow-cream); }
+.wow-menu-toggle:is(:hover,:focus-visible) { background:transparent; color:#fff; }
+
+/* Booking copy on stacked layouts starts at the same edge as the heading above it. */
+@media (max-width:1199px) {
+  .wow-booking-details { margin-left:var(--wow-booking-gutter); margin-right:auto; width:calc(100% - 2 * var(--wow-booking-gutter)); }
+}
+.wow-booking-details>.wow-booking-note { font-size:14px; line-height:1.6; }
+
+/* Review summary: the Google link may wrap under the stars instead of running under the arrows. */
+.reviews-score { min-width:0; }
+.reviews-score>span { min-width:0; }
+.reviews-score>span>span:last-child { display:inline; white-space:normal; }
+/* "Google" and its arrow never separate. */
+.reviews-score-tail { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+
+/* Ticker separators: larger and lighter so they read as marks, not specks. */
+.wow-ticker-unit i { font-size:18px; color:var(--wow-red); opacity:1; }
+
+/* Footer: logo left; copyright and credit share the right side. */
+.wow-footer { padding-block:40px; }
+.wow-footer-meta { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.wow-footer-meta .wow-developer-link { display:inline-flex; align-items:center; min-height:44px; margin-block:-12px; color:#8f8784; font-size:12px; letter-spacing:.01em; }
+.wow-footer-meta .wow-developer-link:is(:hover,:focus-visible) { color:var(--wow-cream); }
+@media (max-width:760px) {
+  .wow-footer-meta { align-items:center; }
+}
