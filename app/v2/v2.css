@@ -19,10 +19,12 @@
 .wow-action::before { background:var(--wow-cream); }
 .wow-action:is(:hover,:focus-visible) { color:#090909; }
 
-/* Primary: the only filled button on the page; ink text on brand red, ink fill sweeps in on hover.
+/* Primary: the only filled button on the page; ink text on brand red. The red fill is the ::before layer and
+   slides out on hover, leaving a transparent button that shows whatever section ground sits behind it.
    Ink on red reads lighter than red on ink, so the label is heavier, slightly larger and looser than other buttons. */
-.wow-primary { color:var(--wow-ink); background:var(--wow-red); border-color:var(--wow-red); font-weight:800; letter-spacing:.075em; }
-.wow-primary::before { background:var(--wow-ink); }
+.wow-primary { color:var(--wow-ink); background:transparent; border-color:var(--wow-red); font-weight:800; letter-spacing:.075em; }
+.wow-primary::before { background:var(--wow-red); transform:translateX(0); }
+.wow-primary:is(:hover,:focus-visible)::before { transform:translateX(101%); }
 .wow-primary:is(:hover,:focus-visible) { color:var(--wow-red); }
 .wow-primary>span { margin-right:auto; white-space:nowrap; font-size:1.12em; }
 .wow-primary>svg:first-child:not(.lucide) { width:20px; height:20px; flex:none; }
