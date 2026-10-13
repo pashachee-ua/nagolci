@@ -19,11 +19,12 @@
 .wow-action::before { background:var(--wow-cream); }
 .wow-action:is(:hover,:focus-visible) { color:#090909; }
 
-/* Primary: the only filled button on the page; ink text on brand red, ink fill sweeps in on hover. */
-.wow-primary { color:var(--wow-ink); background:var(--wow-red); border-color:var(--wow-red); font-weight:700; }
+/* Primary: the only filled button on the page; ink text on brand red, ink fill sweeps in on hover.
+   Ink on red reads lighter than red on ink, so the label is heavier, slightly larger and looser than other buttons. */
+.wow-primary { color:var(--wow-ink); background:var(--wow-red); border-color:var(--wow-red); font-weight:800; letter-spacing:.075em; }
 .wow-primary::before { background:var(--wow-ink); }
 .wow-primary:is(:hover,:focus-visible) { color:var(--wow-red); }
-.wow-primary>span { margin-right:auto; white-space:nowrap; }
+.wow-primary>span { margin-right:auto; white-space:nowrap; font-size:1.12em; }
 .wow-primary>svg:first-child:not(.lucide) { width:20px; height:20px; flex:none; }
 
 /* Secondary: cream outline, cream fill sweep on hover. */
@@ -225,7 +226,7 @@
 .wow-lightbox-meta strong { color:var(--wow-cream); font-size:15px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wow-lightbox-meta span { color:var(--wow-muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 .wow-lightbox-meta a { color:var(--wow-cream); text-decoration:underline; text-underline-offset:3px; }
-.wow-lightbox-book { display:inline-flex; align-items:center; gap:10px; flex:none; min-height:44px; padding:10px 16px; border:1px solid var(--wow-red); background:var(--wow-red); color:var(--wow-ink); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; transition:background .25s; }
+.wow-lightbox-book { display:inline-flex; align-items:center; gap:10px; flex:none; min-height:44px; padding:10px 16px; border:1px solid var(--wow-red); background:var(--wow-red); color:var(--wow-ink); font-size:13.5px; font-weight:800; letter-spacing:.075em; text-transform:uppercase; transition:background .25s; }
 .wow-lightbox-book:is(:hover,:focus-visible) { background:transparent; color:var(--wow-red); }
 .wow-lightbox .lightbox-close:hover { color:#fff; }
 @media (max-width:760px) {
@@ -234,7 +235,7 @@
   .wow-lightbox-meta { gap:12px; }
   .wow-lightbox-count { display:none; }
   .wow-lightbox-meta strong { font-size:14px; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; }
-  .wow-lightbox-book { padding-inline:12px; font-size:11px; }
+  .wow-lightbox-book { padding-inline:12px; font-size:12.5px; }
   .wow-lightbox-figure,.wow-lightbox-figure .full-work,.wow-lightbox-figure .wow-full-video { max-height:calc(100dvh - 72px); }
   .wow-lightbox-figure .wow-full-video { height:calc(100dvh - 72px); }
 }
