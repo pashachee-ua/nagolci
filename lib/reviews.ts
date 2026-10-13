@@ -2,6 +2,8 @@ export type Review = {id:string;author:string;quote:string;rating:number;origina
 // Ukrainian originals from Google Maps: 10 verified 2026-09-27; 5 added 2026-09-30.
 // Quote spacing is lightly normalized; wording is preserved.
 // Google displayed relative dates only; no exact publication dates are inferred.
+// Google Maps place summary verified 2026-10-13; update together with the reviews below.
+export const reviewsSummary={rating:'5,0',count:93};
 export const reviewsUrl='https://www.google.com/maps/place/%D1%82%D0%B0%D1%82%D1%83+%D1%81%D0%B0%D0%BB%D0%BE%D0%BD+NA+GOLCI/@50.46621,30.5135172,16z/data=!4m8!3m7!1s0x40d4cf82f685f7d3:0x701bfc8305c4b8c0!8m2!3d50.4664465!4d30.5104729!9m1!1b1!16s%2Fg%2F11f8bsbz1y';
 export const initialReviews:Review[]=[
 {id:'sasha',author:'Саша Диденко',rating:5,originalLanguage:'uk',quote:'Робила в Паші вже два тату — і обидва вийшли просто чудово. Все дуже якісно, акуратно й швидко. Атмосфера під час сеансів спокійна й довірлива, мені було комфортно з першої хвилини. Паша все пояснює, прислухається до побажань і реально допомагає зробити малюнок ідеальним. Дуже задоволена результатом і досвідом загалом!',url:'https://maps.app.goo.gl/6CuW9LHxnr8MjdUP8'},
