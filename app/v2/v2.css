@@ -315,7 +315,8 @@
 .reviews-score-tail { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 
 /* Ticker separators: larger and lighter so they read as marks, not specks. */
-.wow-ticker-unit i { font-size:18px; color:var(--wow-red); opacity:1; }
+.wow-ticker-unit i { display:inline-flex; align-items:center; font-size:14px; color:var(--wow-red); opacity:1; }
+.wow-ticker-unit i .wow-ticker-star { display:block; width:1em; height:1em; }
 
 /* Footer: logo left; copyright and credit share the right side. */
 .wow-footer { padding-block:40px; }

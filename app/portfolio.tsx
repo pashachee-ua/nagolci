@@ -7,6 +7,7 @@ import type { SiteContent } from '@/lib/content';
 import Reviews from './reviews';
 import { galleryMedia, processMedia, type ImageDimensions } from '@/lib/portfolio-media';
 import TelegramIcon from './telegram-icon';
+import TickerStar from './ticker-star';
 import { MailFilledIcon, PhoneFilledIcon, MapPinFilledIcon } from './contact-icons';
 import WorksCarousel from './works-carousel';
 import SiteHeader from './site-header';
@@ -62,7 +63,7 @@ function Ticker({ paused }: { paused: boolean }) {
     <div className="wow-ticker-track" style={{ animationDuration: `${layout.duration}s`, animationPlayState: paused ? 'paused' : 'running' }}>
       {[0, 1].map(group => <div className="wow-ticker-group" key={group}>
         {Array.from({ length: layout.copies }, (_, index) =>
-          <span className="wow-ticker-unit" ref={group === 0 && index === 0 ? unitRef : undefined} key={index}>NA GOLCI <span>✳</span> ТАТУ З ХАРАКТЕРОМ <span>✳</span></span>
+          <span className="wow-ticker-unit" ref={group === 0 && index === 0 ? unitRef : undefined} key={index}>NA GOLCI <span><TickerStar /></span> ТАТУ З ХАРАКТЕРОМ <span><TickerStar /></span></span>
         )}
       </div>)}
     </div>
@@ -122,7 +123,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
           <figure className="wow-process-photo"><img src="/images/process.webp" alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
           <button type="button" className="wow-action wow-process-video-button" onClick={() => setActive(works.length)}><Play size={18} fill="currentColor" aria-hidden="true" /><span>Дивитися процес</span><ArrowUpRight size={18} aria-hidden="true" /></button>
           <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ.<br /><span>НАША РОБОТА.</span></h2></div>
-          <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Я назву ціну, обговоримо ескіз і разом оберемо дату сеансу.')}</p></div></li></ol><a href="#contact" className="wow-action wow-booking-cta wow-tattoo-cta"><span>Хочу тату</span><ArrowUpRight size={20} aria-hidden="true" /></a></div>
+          <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Обговоримо ескіз і ціну, а потім разом оберемо дату сеансу.')}</p></div></li></ol><a href="#contact" className="wow-action wow-booking-cta wow-tattoo-cta"><span>Хочу тату</span><ArrowUpRight size={20} aria-hidden="true" /></a></div>
         </div>
       </section>
 

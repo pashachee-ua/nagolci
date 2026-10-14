@@ -8,6 +8,7 @@ import Reviews from './reviews';
 import { galleryMedia, processMedia, workTags, type ImageDimensions, type PortfolioMedia } from '@/lib/portfolio-media';
 import { bookingLink, telegramHandle, workDraft } from '@/lib/booking';
 import TelegramIcon from '../telegram-icon';
+import TickerStar from '../ticker-star';
 import { MailFilledIcon, PhoneFilledIcon, MapPinFilledIcon } from '../contact-icons';
 import WorksGallery from './works-carousel';
 import SiteHeader from './site-header';
@@ -88,7 +89,7 @@ function Ticker() {
   return <div className="wow-ticker" aria-hidden="true" ref={containerRef}>
     <div className="wow-ticker-track" ref={trackRef}>
       {Array.from({ length: copies }, (_, index) =>
-        <span className="wow-ticker-unit" ref={index === 0 ? unitRef : undefined} key={index}>{tickerUnit.map(word => <span key={word}>{word}<i>✳</i></span>)}</span>
+        <span className="wow-ticker-unit" ref={index === 0 ? unitRef : undefined} key={index}>{tickerUnit.map(word => <span key={word}>{word}<i><TickerStar /></i></span>)}</span>
       )}
     </div>
   </div>;
@@ -141,7 +142,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
           <figure className="wow-process-photo"><img src="/images/process.webp" alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
           <button type="button" className="wow-action wow-secondary wow-process-video-button" onClick={() => setProcessOpen(true)}><Play size={16} fill="currentColor" aria-hidden="true" /><span>Дивитися процес</span></button>
           <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ.<br /><span>МОЯ РОБОТА.</span></h2></div>
-          <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Я назву ціну, обговоримо ескіз і разом оберемо дату сеансу.')}</p></div></li></ol>
+          <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Обговоримо ескіз і ціну, а потім разом оберемо дату сеансу.')}</p></div></li></ol>
             <BookingAction link={booking} label={booking.channel === 'telegram' ? 'Написати в Telegram' : 'Хочу тату'} className="wow-booking-cta" />
             {booking.channel === 'telegram' && <p className="wow-booking-note">{keepWordsTogether('Відкриється чат зі шаблоном: залишиться дописати ідею, місце й розмір.')}</p>}
           </div>
