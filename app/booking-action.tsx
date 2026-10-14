@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import type { BookingLink } from '@/lib/booking';
-import TelegramIcon from '../telegram-icon';
-import { MailFilledIcon, PhoneFilledIcon } from '../contact-icons';
+import TelegramIcon from './telegram-icon';
+import { MailFilledIcon, PhoneFilledIcon } from './contact-icons';
 
 const channelIcon = { telegram: <TelegramIcon />, phone: <PhoneFilledIcon />, email: <MailFilledIcon />, page: null };
 

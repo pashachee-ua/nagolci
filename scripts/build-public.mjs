@@ -1,7 +1,7 @@
 import { build } from 'vite';
 import { checkArtifact } from './check-static-artifact.mjs';
 import { readFile, mkdir, mkdtemp, cp, rm, writeFile, rename } from 'node:fs/promises';
-import { resolve, isAbsolute, dirname } from 'node:path';
+import { resolve, isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { initialContent } from '../lib/content.ts';
 import { parseSnapshot } from '../static/snapshot.ts';
@@ -35,16 +35,14 @@ try{
  await build({configFile:resolve('vite.public.config.ts'),build:{outDir:staging,emptyOutDir:false}});
  const renderer=resolve(staging,'.renderer');
  await build({configFile:resolve('vite.public.config.ts'),publicDir:false,build:{ssr:'static/render.tsx',outDir:renderer,emptyOutDir:true,manifest:false,rollupOptions:{input:'static/render.tsx',output:{entryFileNames:'render.mjs'}}}});
- const {renderPortfolio,renderPortfolioV2}=await import(pathToFileURL(resolve(renderer,'render.mjs')).href);
+ const {renderPortfolio}=await import(pathToFileURL(resolve(renderer,'render.mjs')).href);
  const manifest=JSON.parse(await readFile(resolve(staging,'.vite/manifest.json'),'utf8'));
- // The current design lives at /, the redesign at /v2/; both read the same snapshot and root-level media.
- for(const [page,key,render] of [['index.html','static/client.tsx',renderPortfolio],['v2/index.html','static/v2/client.tsx',renderPortfolioV2]]){
-  const entry=manifest[key];
-  await mkdir(dirname(resolve(staging,page)),{recursive:true});
-  await writeFile(resolve(staging,page),documentTemplate(render(prepared),prepared,entry.file,entry.css??[]));
- }
+ const entry=manifest['static/client.tsx'];
+ await writeFile(resolve(staging,'index.html'),documentTemplate(renderPortfolio(prepared),prepared,entry.file,entry.css??[]));
+ // The redesign was previewed at /v2/ before it became the main page; keep shared links working.
+ await writeFile(resolve(staging,'_redirects'),'/v2 / 301\n/v2/ / 301\n/v2/* / 301\n');
  await writeFile(resolve(staging,'publication.json'),JSON.stringify({id:snapshot.id??null,revision:snapshot.revision,createdAt:snapshot.createdAt}));
- await writeFile(resolve(staging,'_headers'),'/publication.json\n  Cache-Control: no-store\n/\n  Cache-Control: no-cache\n/v2/\n  Cache-Control: no-cache\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Robots-Tag: noindex, nofollow\n');
+ await writeFile(resolve(staging,'_headers'),'/publication.json\n  Cache-Control: no-store\n/\n  Cache-Control: no-cache\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Robots-Tag: noindex, nofollow\n');
  await rm(renderer,{recursive:true});await rm(resolve(staging,'.vite'),{recursive:true});
  await checkArtifact(staging);
  // Keep the previous artifact until a complete replacement is ready.

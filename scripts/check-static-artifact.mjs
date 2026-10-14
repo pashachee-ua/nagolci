@@ -2,12 +2,8 @@ import {readFile,readdir,stat,realpath} from 'node:fs/promises';
 import {resolve,dirname,sep,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 export async function checkArtifact(directory){
- const root=await realpath(directory);
- // Both designs ship in one artifact: the current site at / and the redesign at /v2/.
- for(const page of ['index.html','v2/index.html']){
-  const html=await readFile(resolve(root,page),'utf8').catch(()=>{throw new Error(`Missing page: ${page}`)});
-  if(!html.startsWith('<!doctype html>')||!html.includes('id="root"')||!html.includes('NA GOLCI')||!html.includes('id="site-snapshot"')||!html.includes('noindex'))throw new Error(`Incomplete public HTML: ${page}`);
- }
+ const root=await realpath(directory),html=await readFile(resolve(root,'index.html'),'utf8');
+ if(!html.startsWith('<!doctype html>')||!html.includes('id="root"')||!html.includes('NA GOLCI')||!html.includes('id="site-snapshot"')||!html.includes('noindex'))throw new Error('Incomplete public HTML');
  const publication=JSON.parse(await readFile(resolve(root,'publication.json'),'utf8'));
  if(!Number.isSafeInteger(publication.revision)||publication.revision<0)throw new Error('Invalid publication manifest');
  async function resource(value,base=root){

@@ -7,11 +7,10 @@ import {checkArtifact} from '../scripts/check-static-artifact.mjs';
 test('artifact check rejects missing resources, secrets and runtime APIs',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'static-check-'));
  const html='<!doctype html><html lang="uk"><head><meta name="robots" content="noindex"></head><body><div id="root">NA GOLCI</div><img src="/image.webp"><script id="site-snapshot" type="application/json">{"content":{"portrait":"/image.webp"}}</script><script src="/assets/client.js"></script></body></html>';
- try{await mkdir(join(dir,'assets'));await mkdir(join(dir,'v2'));await writeFile(join(dir,'index.html'),html);await writeFile(join(dir,'v2/index.html'),html);await writeFile(join(dir,'publication.json'),'{"id":null,"revision":0}');await writeFile(join(dir,'image.webp'),'image');await writeFile(join(dir,'assets/client.js'),'hydrateRoot()');await checkArtifact(dir);
+ try{await mkdir(join(dir,'assets'));await writeFile(join(dir,'index.html'),html);await writeFile(join(dir,'publication.json'),'{"id":null,"revision":0}');await writeFile(join(dir,'image.webp'),'image');await writeFile(join(dir,'assets/client.js'),'hydrateRoot()');await checkArtifact(dir);
  await rm(join(dir,'image.webp'));await assert.rejects(checkArtifact(dir),/Missing resource/);await writeFile(join(dir,'image.webp'),'image');
  await writeFile(join(dir,'assets/client.js'),'BUILD_TOKEN=secret');await assert.rejects(checkArtifact(dir),/Forbidden/);await writeFile(join(dir,'assets/client.js'),'hydrateRoot()');
  await writeFile(join(dir,'index.html'),html.replace('/image.webp','/api/media/test.webp'));await assert.rejects(checkArtifact(dir),/Forbidden/);
- await writeFile(join(dir,'index.html'),html.replace('id="root"','id="nothing"'));await assert.rejects(checkArtifact(dir),/HTML/);await writeFile(join(dir,'index.html'),html);
- await rm(join(dir,'v2/index.html'));await assert.rejects(checkArtifact(dir),/Missing page: v2/);
+ await writeFile(join(dir,'index.html'),html.replace('id="root"','id="nothing"'));await assert.rejects(checkArtifact(dir),/HTML/);
  }finally{await rm(dir,{recursive:true,force:true})}
 });

@@ -2,7 +2,7 @@
 html { scroll-padding-top:0; }
 body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-shell { width:min(var(--wow-content-max),calc(100% - 96px)); margin-inline:auto; }
-.wow-header,.wow-hero,.wow-ticker,.wow-works,.wow-artist,.wow-booking,.wow-reviews,.wow-contact,.wow-footer { font-family:var(--wow-body); }
+.wow-header,.wow-hero,.wow-artist,.wow-booking,.wow-reviews,.wow-contact,.wow-footer { font-family:var(--wow-body); }
 .wow-header { height:78px; position:relative; z-index:20; background:#050505; border-bottom:1px solid #302a29; }
 .wow-header-inner { height:100%; display:flex; align-items:center; justify-content:space-between; gap:35px; }
 .wow-logo { display:block; width:190px; flex:none; }
@@ -27,57 +27,18 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-hero-visual img { width:100%; height:100%; object-fit:cover; object-position:center 44%; filter:saturate(.68) contrast(1.17) brightness(.75); animation:wow-image-in 1.3s both; }
 .wow-hero-kicker { margin-top:46px; width:47%; display:flex; align-items:center; justify-content:space-between; gap:20px; font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:#c5bcb9; animation:wow-rise .7s both; }
 .wow-hero h1>span:first-child { color:var(--wow-red); }
-.wow-title-stop,.wow-section-head h2>span,.wow-artist-copy h2>span { color:var(--wow-red); }
+.wow-title-stop,.wow-artist-copy h2>span { color:var(--wow-red); }
 .wow-hero-bottom p { font-size:clamp(17px,1.6vw,23px); line-height:1.4; max-width:430px; }
-.wow-round-link { width:60px; height:60px; display:grid; place-items:center; border:1px solid var(--wow-red); flex:none; transition:background .35s,transform .35s var(--wow-ease); }
-.wow-round-link svg { transition:transform .45s var(--wow-ease); }
-.wow-round-link:is(:hover,:focus-visible) { background:var(--wow-red); transform:translateY(4px); }
-.wow-round-link:is(:hover,:focus-visible) svg { transform:translateY(5px); }
-.wow-hero-side { position:absolute; z-index:2; right:20px; bottom:32px; writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; letter-spacing:.19em; }
-.wow-ticker { overflow:hidden; background:#050505; color:var(--wow-red); height:70px; display:flex; align-items:center; border-block:1px solid var(--wow-line); }
-.wow-ticker-track { display:flex; flex:none; width:max-content; white-space:nowrap; font-family:'Oswald','Arial Narrow',sans-serif; font-size:31px; font-weight:600; letter-spacing:.005em; animation:wow-marquee linear infinite; }
-.wow-ticker-group { display:flex; flex:none; }
-.wow-ticker-unit { display:block; flex:none; }
-.wow-ticker-unit>span { display:inline-block; padding-inline:65px; font-size:19px; vertical-align:3px; }
-.wow-ticker-star { display:block; width:.75em; height:.75em; }
 .wow-index { display:block; width:max-content; max-width:100%; font-size:12px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--wow-red); }
 .wow-text-link { margin-top:36px; }
-.wow-section-head { display:flex; align-items:end; justify-content:space-between; gap:40px; margin-bottom:75px; }
-.wow-section-head h2,.wow-artist-copy h2,.wow-contact-copy h2 { font-family:var(--wow-display); font-weight:600; font-size:var(--wow-section-title-size); line-height:.9; letter-spacing:-.045em; margin-top:23px; }
-.wow-section-head>p { font-size:17px; line-height:1.5; color:#aea7a3; padding-bottom:8px; max-width:300px; }
-.wow-works .wow-section-head { position:absolute; z-index:2; top:65px; left:0; right:0; margin-bottom:0; pointer-events:none; }
-.wow-works-side>p { max-width:300px; color:#aea7a3; font-size:17px; line-height:1.5; text-align:right; }
-.wow-gallery-viewport { --wow-gallery-fade:clamp(70px,calc(50vw - 630px),440px); width:100%; overflow-x:auto; overflow-y:hidden; overscroll-behavior-inline:contain; touch-action:pan-y pinch-zoom; scrollbar-width:none; cursor:grab; -webkit-user-select:none; user-select:none; -webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--wow-gallery-fade),#000 calc(100% - var(--wow-gallery-fade)),transparent); mask-image:linear-gradient(90deg,transparent,#000 var(--wow-gallery-fade),#000 calc(100% - var(--wow-gallery-fade)),transparent); }
-.wow-gallery-viewport::-webkit-scrollbar { display:none; }
-.wow-gallery-viewport.is-dragging { cursor:grabbing; }
-.wow-gallery-viewport:focus-visible { outline:2px solid var(--wow-red); outline-offset:-2px; }
-.wow-gallery-edge { position:absolute; z-index:3; top:50%; display:grid; place-items:center; width:clamp(64px,7vw,112px); height:clamp(90px,10vw,136px); padding:0; border:0; background:transparent; color:var(--wow-red); transform:translateY(-50%); }
-.wow-gallery-edge svg { filter:drop-shadow(0 2px 10px #000); transition:transform .35s var(--wow-ease),color .35s; }
-.wow-gallery-edge-prev { left:0; }
-.wow-gallery-edge-next { right:0; }
-.wow-gallery-edge-prev:is(:hover,:focus-visible) svg { transform:translateX(-8px); color:var(--wow-cream); }
-.wow-gallery-edge-next:is(:hover,:focus-visible) svg { transform:translateX(8px); color:var(--wow-cream); }
-.wow-gallery-edge:disabled { opacity:.28; cursor:default; }
-.wow-gallery-edge:disabled:is(:hover,:focus-visible) svg { transform:none; color:var(--wow-red); }
-.wow-gallery { display:flex; align-items:flex-start; gap:0; width:max-content; }
-.wow-gallery-group { display:flex; flex:none; }
-.wow-work { display:block; flex:none; width:max-content; padding:0; border:0; background:none; text-align:left; position:relative; overflow:hidden; }
-.wow-gallery-viewport { scroll-snap-type:none; scroll-behavior:auto; overflow-anchor:none; }
-.wow-work { scroll-snap-align:none; }
-.wow-work-image { display:block; overflow:hidden; position:relative; }
-.wow-work-image img { display:block; width:auto; height:var(--wow-work-height); max-height:100svh; max-width:none; aspect-ratio:auto 4/5; object-fit:contain; filter:saturate(.82); transition:filter .5s; -webkit-user-drag:none; }
-.wow-work:hover .wow-work-image img,.wow-work:focus-visible .wow-work-image img { filter:saturate(1.05); }
-.wow-work-caption { position:absolute; inset:auto 0 0; display:flex; align-items:end; justify-content:space-between; gap:20px; padding:58px 22px 22px; background:linear-gradient(180deg,transparent,#090909d9); color:var(--wow-cream); font-size:12px; letter-spacing:.1em; text-transform:uppercase; opacity:0; transform:translateY(8px); pointer-events:none; transition:opacity .3s,transform .3s var(--wow-ease); }
-.wow-work:is(:hover,:focus-visible,.is-open) .wow-work-caption { opacity:1; transform:translateY(0); }
-.wow-work-caption svg { flex:none; color:var(--wow-red); transition:transform .25s; }
-.wow-work:hover .wow-work-caption svg { transform:translate(4px,-4px); }
+.wow-artist-copy h2,.wow-contact-copy h2 { font-family:var(--wow-display); font-weight:600; font-size:var(--wow-section-title-size); line-height:.9; letter-spacing:-.045em; margin-top:23px; }
 .wow-artist-copy .wow-index { color:var(--wow-red); }
 .wow-artist-copy h2 { margin-block:26px 0; }
 .wow-artist-copy h2 small { font-size:.64em; letter-spacing:-.025em; }
 .wow-artist-copy h2 em { color:var(--wow-red); font-family:var(--wow-editorial); font-weight:600; letter-spacing:-.05em; }
 .wow-bio { max-width:590px; font-size:17px; line-height:1.7; margin:36px 0 22px; color:#d4c9c4; }
 .wow-bio p + p { margin-top:18px; }
-.wow-hero-bottom p,.wow-bio p,.wow-booking-details p,.wow-works-side p,.wow-reviews blockquote { text-wrap:pretty; }
+.wow-hero-bottom p,.wow-bio p,.wow-booking-details p,.wow-reviews blockquote { text-wrap:pretty; }
 .wow-booking-details h3,.wow-steps h4,.wow-contact-methods h3 { text-wrap:balance; }
 .wow-social { gap:10px; margin-top:4px; }
 .wow-social>span { margin-right:auto; }
@@ -98,7 +59,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-reviews { background:#050505; color:var(--wow-cream); border-top:1px solid #282828; }
 .wow-reviews .reviews-section { --wow-review-heading-space:200px; position:relative; width:100%; padding:0; border:0; overflow:hidden; }
 .wow-reviews .reviews-heading h2 span { color:var(--wow-red); }
-.wow-reviews .all-reviews { flex:none; margin:0 0 3px; pointer-events:auto; }
 .wow-reviews .reviews-viewport::before,.wow-reviews .reviews-viewport::after { content:""; position:absolute; z-index:1; top:0; bottom:0; width:var(--wow-review-fade); pointer-events:none; transition:opacity .4s var(--wow-ease); }
 .wow-reviews .reviews-viewport::before { left:0; background:linear-gradient(90deg,#050505,transparent); }
 .wow-reviews .reviews-viewport::after { right:0; background:linear-gradient(270deg,#050505,transparent); }
@@ -115,7 +75,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-reviews .review-credit small,.wow-reviews .review-credit a { color:#b4a9a4; }
 .wow-reviews .review-credit a { margin-top:8px; }
 .wow-reviews .review-credit a:is(:hover,:focus-visible) { color:var(--wow-red); }
-.wow-reviews .review-edge:disabled { opacity:0; visibility:hidden; pointer-events:none; }
 .wow-contact { position:relative; isolation:isolate; background:#0b0b0b; border-top:1px solid #303030; padding-block:95px 120px; overflow:hidden; }
 .wow-contact::after { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(90deg,#0b0b0b33 0%,#0b0b0b80 28%,#0b0b0be8 48%,#0b0b0bf7 62%,#0b0b0b 78%); }
 .wow-contact-layout { display:flex; justify-content:flex-end; align-items:center; min-height:780px; }
@@ -124,9 +83,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-contact-copy { width:54%; position:relative; z-index:1; }
 .wow-contact-copy h2 { margin-bottom:55px; }
 .wow-address { font-size:22px; font-weight:500; }
-/* The address opens the map too; it reads as text until hovered. */
-.wow-address a { color:inherit; text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:1px; text-underline-offset:6px; transition:color .25s,text-decoration-color .25s; }
-.wow-address a:is(:hover,:focus-visible) { color:var(--wow-red); text-decoration-color:var(--wow-red); }
 .wow-hours { display:flex; align-items:center; gap:10px; margin-top:12px; color:#c4b9b4; font-size:15px; }
 .wow-contact-copy .wow-text-link { margin-top:18px; }
 .wow-contact-copy .wow-text-link>span { margin-right:auto; min-width:0; }
@@ -150,7 +106,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-lightbox[data-slot=dialog-content] { width:100vw; max-width:none; height:100dvh; max-height:none; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; display:block; overflow:hidden; font-family:var(--wow-body); }
 .wow-lightbox-figure { position:relative; width:100%; height:100%; max-width:none; margin:0; display:grid; place-items:center; overflow:hidden; }
 .wow-lightbox-figure .full-work { display:block; width:auto; height:100dvh; max-width:100vw; max-height:100dvh; object-fit:contain; }
-.wow-lightbox-figure figcaption { position:absolute; inset:auto 0 0; padding:44px 18px 16px; background:linear-gradient(180deg,transparent,#090909db); color:var(--wow-cream); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
 .wow-lightbox .lightbox-top { position:absolute; z-index:4; top:clamp(16px,3vw,48px); right:clamp(16px,3vw,48px); }
 .wow-lightbox .lightbox-close { border:0; background:transparent; color:var(--wow-cream); width:56px; height:56px; padding:0; display:grid; place-items:center; }
 .wow-lightbox .lightbox-close:hover { color:var(--wow-red); background:transparent; }
@@ -186,8 +141,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 @media(min-width:760px) and (max-width:1100px) {
   .wow-contact-copy h2 { font-size:clamp(3.5rem,7.6vw,4.5rem); }
 }
-@media(min-width:761px) and (max-width:1100px) and (orientation:portrait) {
-}
 @media(max-width:760px) {
   .wow-header { height:66px; }
   .wow-header nav { display:none; }
@@ -199,25 +152,10 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
   .wow-hero::before { background:linear-gradient(180deg,#0808086b 0%,#08080839 28%,#080808c9 57%,#080808 82%,#080808 100%); }
   .wow-hero-kicker { margin-top:28px; width:100%; font-size:10px; }
   .wow-hero-bottom p { max-width:320px; font-size:17px; }
-  .wow-round-link { width:58px; height:58px; }
-  .wow-hero-side { display:none; }
-  .wow-ticker { height:56px; }
-  .wow-ticker-track { font-size:21px; }
-  .wow-ticker-unit>span { padding-inline:40px; }
-  .wow-section-head { display:block; margin-bottom:45px; }
-  .wow-section-head h2,.wow-artist-copy h2,.wow-contact-copy h2 { font-size:clamp(4.5rem,11vw,7.5rem); }
-  .wow-section-head>p { margin-top:24px; }
-  .wow-works .wow-section-head { top:28px; margin-bottom:0; }
-  .wow-works-side { margin-top:22px; }
-  .wow-works-side>p { font-size:14px; text-align:left; }
-  .wow-gallery-viewport { --wow-gallery-fade:clamp(20px,6vw,34px); }
-  .wow-gallery-edge { width:52px; height:88px; }
-  .wow-gallery-edge svg { width:26px; height:26px; }
-  .wow-work-caption { font-size:10px; letter-spacing:.05em; gap:5px; }
+  .wow-artist-copy h2,.wow-contact-copy h2 { font-size:clamp(4.5rem,11vw,7.5rem); }
   .wow-artist-copy h2 { margin-block:18px 0; }
   .wow-booking { padding:0; }
   .wow-booking-cta { width:min(100%,340px); margin-top:30px; }
-  .wow-reviews .all-reviews { min-height:48px; padding:12px; font-size:11px; }
   .wow-contact { padding-block:0 100px; }
   .wow-contact::after { inset:0 auto auto 0; width:100%; height:620px; background:linear-gradient(180deg,#0b0b0b33 0%,#0b0b0b4d 27%,#0b0b0bcc 53%,#0b0b0bf2 73%,#0b0b0b 87%); }
   .wow-contact-layout { display:block; min-height:0; padding-top:440px; }
@@ -231,8 +169,6 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
   .wow-logo { width:clamp(145px,42vw,175px); }
   .wow-header-cta { gap:7px; padding-inline:10px; font-size:10px; }
   .wow-hero-bottom p { max-width:250px; font-size:16px; }
-  .wow-round-link { width:50px; height:50px; }
-  .wow-work-caption { font-size:11px; }
   .wow-bio { font-size:15px; }
   .wow-contact-photo { height:520px; }
   .wow-contact::after { height:550px; }
@@ -248,8 +184,8 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
   .wow-contact-copy h2 { font-size:12vw; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .wow-ticker>div,.wow-hero h1,.wow-hero-visual img,.wow-hero-kicker,.wow-hero-bottom { animation:none!important; }
-  .wow-work-image img,.wow-round-link,.wow-booking-cta { transition:none!important; }
+  .wow-hero h1,.wow-hero-visual img,.wow-hero-kicker,.wow-hero-bottom { animation:none!important; }
+  .wow-booking-cta { transition:none!important; }
 }
 
 /* Responsive composition: one scale, with subject-specific photo safe areas. */
@@ -261,12 +197,7 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
 .wow-hero-bottom { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; width:49%; gap:24px; margin-bottom:0; }
 .wow-hero-bottom p { max-width:430px; }
 .wow-hero-bottom .wow-action { min-height:48px; font-size:12px; }
-.wow-section-head h2,.wow-artist-copy h2,.wow-contact-copy h2,.wow-reviews .reviews-heading h2 { font-size:var(--wow-section-title-size); }
-.wow-works { --wow-work-height:clamp(560px,calc(100svh - var(--wow-header-height)),980px); position:relative; isolation:isolate; overflow:hidden; }
-.wow-work-image::before,.wow-work-image::after { content:""; position:absolute; z-index:1; left:0; right:0; pointer-events:none; }
-.wow-work-image::before { top:0; height:clamp(260px,40%,360px); background:linear-gradient(180deg,#090909fa 0%,#090909bf 48%,#09090955 78%,transparent 100%); }
-.wow-work-image::after { bottom:0; height:clamp(100px,23%,230px); background:linear-gradient(0deg,#030203f2 0%,#0302039c 30%,#03020330 68%,transparent 100%); }
-.wow-work-caption { z-index:2; }
+.wow-artist-copy h2,.wow-contact-copy h2,.wow-reviews .reviews-heading h2 { font-size:var(--wow-section-title-size); }
 .wow-artist { position:relative; isolation:isolate; background:#030203; color:var(--wow-cream); min-height:min(calc(100svh - var(--wow-header-height)),1280px); overflow:hidden; }
 .wow-artist-layout { display:flex; align-items:center; min-height:min(calc(100svh - var(--wow-header-height)),1280px); padding-block:clamp(64px,7svh,100px); }
 .wow-artist-media { position:absolute; top:0; bottom:0; right:var(--wow-backdrop-offset); z-index:-2; width:min(70%,calc(115svh + 15px),1220px); overflow:hidden; mask-image:linear-gradient(180deg,transparent,#0009 5%,#000e 12%,#000 21%,#000 76%,#000d 87%,transparent 100%); }
@@ -325,10 +256,6 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
   .wow-hero h1 { font-size:13vw; white-space:normal; letter-spacing:-.055em; margin:auto 0 28px; padding-top:clamp(190px,32svh,300px); }
   .wow-hero-bottom { width:100%; gap:20px; align-items:start; }
   .wow-hero-bottom p { max-width:100%; font-size:16px; }
-  .wow-works { --wow-work-height:min(100svh,clamp(320px,52svh,440px)); }
-  .wow-works .wow-section-head { top:24px; }
-  .wow-works-side { margin-top:14px; }
-  .wow-works-side>p { font-size:13px; }
   .wow-artist-layout { padding-bottom:56px; }
   .wow-artist-copy h2 { font-size:var(--wow-section-title-size); }
   .wow-bio { font-size:16px; }
@@ -356,7 +283,6 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
 .wow-reviews .review-expand { align-self:flex-start; min-height:44px; margin-top:12px; padding:0; border:0; background:none; color:var(--wow-cream); font-size:13px; font-weight:500; letter-spacing:.03em; text-transform:none; }
 .wow-reviews .review-credit { padding-top:28px; }
 .wow-reviews .review-stars { margin-bottom:24px; }
-.wow-reviews .review-edge { top:calc(50% + var(--wow-review-heading-space)/2); transition:opacity .4s var(--wow-ease),visibility .4s; }
 .wow-reviews .is-dragging blockquote { user-select:none; }
 .wow-footer>span { color:#c8bebb; }
 @media(max-width:760px) {
@@ -364,7 +290,6 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
  .wow-reviews .review-card { flex-basis:86vw; min-height:calc(440px + var(--wow-review-heading-space)); padding:calc(32px + var(--wow-review-heading-space)) 26px 28px; }
  .wow-reviews .review-card blockquote { font-size:17px; }
  .wow-reviews .reviews-viewport { --wow-review-fade:26px; }
- .wow-reviews .review-edge { top:calc(50% + var(--wow-review-heading-space)/2); }
 }
 /* Compact navigation and a contact action at the beginning of its section. */
 .wow-menu-toggle { display:none; align-items:center; justify-content:center; gap:8px; min-width:44px; min-height:44px; padding:10px 12px; border:0; background:transparent; color:var(--wow-red); font-size:13px; font-weight:500; cursor:pointer; transition:background .2s; }
@@ -415,17 +340,8 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
  .wow-header-inner { gap:8px; }
  .wow-header-cta { padding-inline:8px; font-size:10px; gap:6px; }
 }
-.wow-works-side { pointer-events:auto; display:flex; flex-direction:column; align-items:end; gap:18px; }
-.wow-motion-toggle { min-height:44px; padding:10px 14px; font-size:12px; gap:12px; }
-.wow-motion-toggle>svg { width:16px; height:16px; }
-@media(min-width:761px) and (hover:hover) and (pointer:fine) {
- .wow-motion-toggle { display:none; }
-}
-.wow-ticker-track { font-size:26px; font-weight:500; }
 .wow-lightbox[data-slot=dialog-content] { background:#030303fa; }
 .wow-lightbox-figure { touch-action:pan-y pinch-zoom; }
-.wow-lightbox-figure figcaption { width:100%; max-width:none; left:0; right:0; transform:none; padding:28px 24px 18px; text-align:center; }
-@media(max-width:760px) { .wow-works-side { align-items:start; gap:12px; } .wow-motion-toggle { min-height:40px; padding:8px 12px; font-size:11px; } .wow-ticker-track { font-size:19px; } }
 
 @media(min-width:1600px) {
  .wow-artist,.wow-artist-layout { min-height:clamp(900px,calc(100svh - var(--wow-header-height)),1280px); }
@@ -456,34 +372,17 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
  .wow-artist-actions { flex-direction:column; align-items:stretch; }
  .wow-artist-actions>.wow-action { width:100%; flex:auto; }
 }
-
-.wow-tattoo-cta>span { margin-right:auto; white-space:nowrap; }
 /* One spacing rule for leading icons in actions and contact links. */
 .wow-social,.wow-socials>.wow-action,.wow-contact-primary,.wow-contact-copy .wow-text-link,.wow-contact-methods>a { gap:12px; }
 .wow-contact-methods>a>svg:first-child { width:20px; height:20px; flex:none; }
 
 /* Local videos sourced from Pavlo's TikTok; original files can replace them. */
-.wow-work-preview { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; pointer-events:none; transition:opacity .25s; }
-.wow-work-preview.is-playing { opacity:1; }
-.wow-video-badge { position:absolute; z-index:2; left:24px; bottom:72px; display:flex; align-items:center; gap:8px; padding:8px 12px; color:var(--wow-cream); background:#090909b0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; pointer-events:none; }
 .wow-lightbox-figure .wow-full-video { height:100dvh; max-height:100dvh; max-width:100vw; width:auto; }
-.wow-lightbox-figure:has(video) figcaption { bottom:0; padding:20px 18px 84px; pointer-events:none; }
-.wow-lightbox-figure figcaption a { margin-left:16px; pointer-events:auto; text-decoration:underline; text-underline-offset:4px; }
 .wow-process-video-button { position:absolute; z-index:3; top:32px; left:var(--wow-booking-gutter); gap:12px; background:#09090980; }
 @media(min-width:1200px) {
  .wow-process-video-button { top:auto; bottom:64px; background:transparent; }
  .wow-booking-head { padding-bottom:110px; }
 }
-@media(prefers-reduced-motion:reduce) { .wow-work-preview { transition:none; } }
-
-.wow-lightbox-figure figcaption a { display:inline-block; white-space:nowrap; }
-@media(max-width:760px) {
- .wow-works .wow-section-head { top:0; height:100%; padding-top:28px; }
- .wow-works .wow-motion-toggle { position:absolute; top:18px; right:0; bottom:auto; left:auto; margin:0; pointer-events:auto; background:transparent; }
- .wow-works .wow-gallery-edge { display:none; }
-}
-
-.wow-motion-toggle { width:44px; height:44px; min-height:44px; padding:0; justify-content:center; gap:0; }
 
 /* Give large displays a proportionate reading scale without enlarging the viewport. */
 @media(min-width:1600px) {
@@ -499,8 +398,6 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
  .wow-hero h1 { font-size:clamp(106px,10.23vw,194px); }
  .wow-hero-bottom p { font-size:25px; max-width:473px; }
  .wow-hero-bottom .wow-action { min-height:58px; font-size:14px; }
- .wow-works-side>p { font-size:18.7px; max-width:330px; }
- .wow-ticker-track { font-size:28.6px; }
  .wow-bio { font-size:18.7px; max-width:649px; margin-block:40px 24px; }
  .wow-artist-actions { gap:16px; margin-top:26px; }
  .wow-booking-content { padding-block:70px; }
@@ -531,30 +428,20 @@ html { scroll-padding-top:var(--wow-sticky-offset); }
 }
 
 @media(max-width:760px) {
- .wow-works .wow-video-badge { bottom:12px; left:50%; transform:translateX(-50%); white-space:nowrap; }
  .wow-hero-bottom p,.wow-bio { font-size:17px; }
- .wow-works-side>p { font-size:15px; line-height:1.5; }
  .wow-action,.wow-hero-bottom .wow-action { font-size:14px; }
  .wow-header-cta { flex:0 0 auto; max-width:none; justify-content:center; padding-inline:14px; gap:10px; font-size:12px; }
  .wow-header-cta>span { margin-right:0; }
  .wow-hero-kicker { font-size:11px; }
  .wow-booking-details>p,.wow-steps p { font-size:16px; }
  .wow-steps h4 { font-size:21px; }
- .wow-reviews .all-reviews { font-size:12px; }
  .wow-reviews .review-expand { font-size:14px; }
- .wow-work-caption,.wow-video-badge,.wow-lightbox-figure figcaption { font-size:12px; }
- .wow-lightbox-figure:has(video) figcaption { display:flex; flex-direction:column; align-items:center; gap:6px; }
- .wow-lightbox-figure:has(video) figcaption a { margin-left:0; }
  .wow-address { font-size:20px; line-height:1.5; }
  .wow-footer { flex-direction:column; align-items:center; gap:16px; font-size:11px; text-align:center; }
  .wow-footer>a:first-child { width:160px; }
  .wow-footer>span { text-align:center; }
  .wow-footer-credit { padding-top:16px; }
  .wow-footer-credit .wow-developer-link { font-size:10px; }
-}
-
-@media(max-width:760px), (pointer:coarse) {
- .wow-gallery-viewport { touch-action:pan-x pan-y pinch-zoom; cursor:auto; }
 }
 @media(max-width:360px) {
  .wow-header-inner { gap:10px; }

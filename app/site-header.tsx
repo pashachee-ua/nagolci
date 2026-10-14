@@ -1,7 +1,9 @@
 'use client';
 /* eslint-disable next/no-img-element -- Preserve the provided SVG studio logo. */
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import type { BookingLink } from '@/lib/booking';
+import BookingAction from './booking-action';
 
 const navigation = [
   { id: 'works', label: 'Роботи' },
@@ -12,7 +14,7 @@ const navigation = [
 ] as const;
 const pageSections = ['works', 'artist', 'price', 'reviews', 'contact'] as const;
 
-export default function SiteHeader() {
+export default function SiteHeader({ booking }: { booking: BookingLink }) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -68,7 +70,7 @@ export default function SiteHeader() {
           {menuOpen ? <X size={20} strokeWidth={1.5} aria-hidden="true" /> : <Menu size={20} strokeWidth={1.5} aria-hidden="true" />}
           <span className="wow-menu-toggle-label">{menuOpen ? 'Закрити' : 'Меню'}</span>
         </button>
-        <a className="wow-action wow-header-cta wow-tattoo-cta" href="#contact"><span>Хочу тату</span><ArrowUpRight size={18} aria-hidden="true" /></a>
+        <BookingAction link={booking} className="wow-header-cta" icon={false} />
       </div>
       {menuOpen && <nav className="wow-mobile-nav" id="mobile-navigation" aria-label="Мобільна навігація">{navigation.map(({id,label}) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} onClick={() => setMenuOpen(false)}>{label}</a>)}</nav>}
     </header>

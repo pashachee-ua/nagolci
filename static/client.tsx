@@ -4,5 +4,6 @@ import type { ContentSnapshot } from '../shared/publication';
 import '../app/fonts.css';
 import '../app/globals.css';
 import '../app/wow.css';
+import '../app/redesign.css';
 const snapshot=JSON.parse(document.getElementById('site-snapshot')!.textContent!) as ContentSnapshot;
 hydrateRoot(document.getElementById('root')!,<Portfolio content={snapshot.content} imageDimensions={snapshot.imageDimensions} year={new Date(snapshot.createdAt).getUTCFullYear()}/>);

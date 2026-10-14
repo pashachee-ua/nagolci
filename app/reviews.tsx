@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Star } from 'lucide-react';
-import { reviewsUrl, type Review } from '@/lib/reviews';
+import { reviewsSummary, reviewsUrl, type Review } from '@/lib/reviews';
 import { horizontalWheelDelta } from './carousel-input';
 import { keepWordsTogether } from '@/lib/typography';
 
@@ -24,10 +24,10 @@ function ReviewCard({ review }: { review: Review }) {
 
   const quoteId = `review-quote-${review.id}`;
   return <article className="review-card">
-    <div className="review-stars" aria-label={`${review.rating} з 5 зірок`}>{Array.from({ length: 5 }, (_, index) => <Star key={index} size={18} fill={index < review.rating ? 'currentColor' : 'none'} aria-hidden="true" />)}</div>
+    <p className="review-stars"><span className="sr-only">{`Оцінка ${review.rating} з 5`}</span>{Array.from({ length: 5 }, (_, index) => <Star key={index} size={18} fill={index < review.rating ? 'currentColor' : 'none'} aria-hidden="true" />)}</p>
     <blockquote id={quoteId} ref={quoteRef} lang={review.originalLanguage} className={expanded ? '' : 'review-quote-collapsed'}>{keepWordsTogether(review.quote)}</blockquote>
     {isLong && <button className="review-expand" type="button" aria-expanded={expanded} aria-controls={quoteId} onClick={() => setExpanded(value => !value)}>{expanded ? 'Згорнути' : 'Читати повністю'} <span aria-hidden="true">{expanded ? '−' : '+'}</span></button>}
-    <div className="review-credit"><p>{review.author}</p><a href={review.url} target="_blank" rel="noreferrer" aria-label={`Відгук ${review.author} у Google`}>Оригінал у Google <ArrowUpRight size={15} /></a></div>
+    <div className="review-credit"><p>{review.author}</p><a href={review.url} target="_blank" rel="noreferrer" aria-label={`Відгук ${review.author} у Google`}>Оригінал у Google <ArrowUpRight size={15} aria-hidden="true" /></a></div>
   </article>;
 }
 
@@ -107,7 +107,16 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
   return <section className="reviews-section" aria-labelledby="reviews-title" id="reviews">
     <div className="reviews-heading wow-shell">
       <div><p className="wow-index">ДОСВІД КЛІЄНТІВ</p><h2 id="reviews-title">ВІДГУКИ<span>.</span></h2></div>
-      <a className="wow-action all-reviews" href={reviewsUrl} target="_blank" rel="noreferrer">Усі відгуки в Google <ArrowUpRight size={18} /></a>
+      <div className="reviews-summary">
+        <a className="reviews-score" href={reviewsUrl} target="_blank" rel="noreferrer" aria-label={`Рейтинг ${reviewsSummary.rating} з 5, ${reviewsSummary.count} відгуки в Google. Відкрити всі відгуки`}>
+          <strong>{reviewsSummary.rating}</strong>
+          <span><span className="reviews-score-stars" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <Star key={index} size={15} fill="currentColor" />)}</span><span>{reviewsSummary.count} відгуки в <span className="reviews-score-tail">Google<ArrowUpRight size={14} aria-hidden="true" /></span></span></span>
+        </a>
+        <div className="reviews-nav">
+          <button className="wow-icon-button" type="button" aria-label="Попередні відгуки" disabled={edge.start} onClick={() => move(-1)}><ArrowLeft size={22} strokeWidth={1.6} aria-hidden="true" /></button>
+          <button className="wow-icon-button" type="button" aria-label="Наступні відгуки" disabled={edge.end} onClick={() => move(1)}><ArrowRight size={22} strokeWidth={1.6} aria-hidden="true" /></button>
+        </div>
+      </div>
     </div>
     {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The carousel viewport needs focus for arrow-key navigation. */}
     <section className={`reviews-viewport${dragging ? ' is-dragging' : ''}`} data-at-start={edge.start} data-at-end={edge.end} ref={attachViewport} tabIndex={0} aria-roledescription="carousel" aria-label="Відгуки клієнтів, гортайте свайпом або стрілками" onKeyDown={event => {
@@ -119,7 +128,5 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
     }}>
       <div className="reviews-track">{publishedReviews.map(review => <ReviewCard review={review} key={review.id} />)}</div>
     </section>
-    <button className="wow-gallery-edge wow-gallery-edge-prev review-edge" type="button" aria-label="Попередні відгуки" disabled={edge.start} onClick={() => move(-1)}><ArrowLeft size={34} strokeWidth={1.7} aria-hidden="true" /></button>
-    <button className="wow-gallery-edge wow-gallery-edge-next review-edge" type="button" aria-label="Наступні відгуки" disabled={edge.end} onClick={() => move(1)}><ArrowRight size={34} strokeWidth={1.7} aria-hidden="true" /></button>
   </section>;
 }

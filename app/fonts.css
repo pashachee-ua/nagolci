@@ -1,10 +1,4 @@
-@font-face {
-  font-family: 'Oswald';
-  font-style: normal;
-  font-weight: 200 700;
-  font-display: swap;
-  src: url(/fonts/oswald-variable.ttf) format('truetype');
-}
+/* Two families only: Cormorant Garamond for display, Golos Text for everything else. */
 @font-face {
   font-family: 'Golos Text';
   font-style: normal;
@@ -18,25 +12,4 @@
   font-weight: 600;
   font-display: block;
   src: url(/fonts/cormorant-garamond-600.woff2) format('woff2');
-}
-@font-face {
-  font-family: 'PT Serif';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url(/fonts/pt-serif-400-italic.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'PT Serif';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(/fonts/pt-serif-400-normal.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'PT Serif';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(/fonts/pt-serif-700-normal.ttf) format('truetype');
 }

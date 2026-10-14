@@ -2,329 +2,175 @@
 /* eslint-disable next/no-img-element -- Work images are editable local media URLs in the Vinext preview. */
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react';
-import type { PortfolioMedia } from '@/lib/portfolio-media';
+import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { galleryFilters, workTitle, type PortfolioMedia } from '@/lib/portfolio-media';
 import WorkPreview from './work-preview';
 import { momentumStep, releaseVelocity } from './gallery-physics';
-import { nearbyMedia } from './gallery-preload';
+import { horizontalWheelDelta } from './carousel-input';
 
-type Drag = { pointerId: number; startX: number; startY: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean; position: number; target: number };
-const wrap = (position: number, width: number) => ((position % width) + width) % width;
+type Drag = { pointerId: number; startX: number; startScroll: number; lastX: number; lastTime: number; velocity: number; moved: boolean };
+const pad = (value: number) => String(value).padStart(2, '0');
 
-export default function WorksCarousel({ works, onOpen, active, pageActive, motionPaused, onMotionPausedChange }: { works: PortfolioMedia[]; onOpen: (index: number) => void; active: number | null; pageActive: boolean; motionPaused: boolean; onMotionPausedChange: (paused: boolean) => void }) {
+/**
+ * Desktop: a horizontal strip the visitor drives (drag with momentum, wheel, arrows) — nothing moves on its own,
+ * so a work never slides away while someone is looking at it. Phones: a two-column grid with every work visible.
+ */
+export default function WorksGallery({ works, allWorks, total, filter, onFilterChange, onOpen, active }: { works: PortfolioMedia[]; allWorks: PortfolioMedia[]; total: number; filter: string | null; onFilterChange: (filter: string | null) => void; onOpen: (index: number) => void; active: number | null }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLElement>(null);
   const dragRef = useRef<Drag | null>(null);
   const ignoreClickRef = useRef(false);
-  const loopWidthRef = useRef(0);
-  const controlFrameRef = useRef<number | null>(null);
-  const inertiaFrameRef = useRef<number | null>(null);
-  const dragFrameRef = useRef<number | null>(null);
-  const hoverPauseRef = useRef(false);
-  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
-  const [preparedMedia, setPreparedMedia] = useState<Set<number>>(() => new Set());
+  const frameRef = useRef<number | null>(null);
+  const [position, setPosition] = useState({ first: 1, progress: 0, start: true, end: false });
+  const filters = galleryFilters(allWorks);
+
+  const stopAnimation = () => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+  };
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    let ready = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let idle: number | undefined;
-    let previousScroll = viewport.scrollLeft;
-    let direction = 1;
-    const prepare = () => {
-      timer = undefined;
-      const position = viewport.scrollLeft;
-      const delta = position - previousScroll;
-      // A loop reset should not be mistaken for a backwards swipe.
-      if (Math.abs(delta) > 1 && Math.abs(delta) < loopWidthRef.current / 2) direction = Math.sign(delta);
-      previousScroll = position;
-      const frame = viewport.getBoundingClientRect();
-      const bounds = [...viewport.querySelectorAll('.wow-work')].map(element => element.getBoundingClientRect());
-      const upcoming = nearbyMedia(bounds, frame, works.length, direction);
-      setPreparedMedia(current => upcoming.every(index => current.has(index)) ? current : new Set([...current, ...upcoming]));
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      const box = viewport.getBoundingClientRect();
+      const items = [...viewport.querySelectorAll<HTMLElement>('.wow-work')];
+      const firstVisible = items.findIndex(item => item.getBoundingClientRect().right > box.left + 40);
+      const next = { first: Math.max(1, firstVisible + 1), progress: max > 0 ? viewport.scrollLeft / max : 1, start: viewport.scrollLeft <= 2, end: viewport.scrollLeft >= max - 2 };
+      setPosition(current => current.first === next.first && Math.abs(current.progress - next.progress) < .002 && current.start === next.start && current.end === next.end ? current : next);
     };
-    const schedule = () => {
-      if (ready && timer === undefined) timer = setTimeout(prepare, 100);
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey || matchMedia('(max-width:760px)').matches) return;
+      const delta = horizontalWheelDelta(event.deltaX, event.deltaY, event.shiftKey, event.deltaMode, viewport.clientWidth);
+      if (delta === null) return;
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      if ((delta < 0 && viewport.scrollLeft <= 0) || (delta > 0 && viewport.scrollLeft >= max)) return;
+      event.preventDefault();
+      stopAnimation();
+      viewport.scrollLeft += delta;
     };
-    const start = () => {
-      ready = true;
-      if ('requestIdleCallback' in window) idle = window.requestIdleCallback(prepare, { timeout: 1000 });
-      else schedule();
-    };
+    viewport.scrollLeft = 0;
     viewport.addEventListener('scroll', schedule, { passive: true });
-    viewport.addEventListener('load', schedule, true);
+    viewport.addEventListener('wheel', wheel, { passive: false });
     const observer = new ResizeObserver(schedule);
     observer.observe(viewport);
-    if (document.readyState === 'complete') start();
-    else window.addEventListener('load', start, { once: true });
+    measure();
     return () => {
-      window.removeEventListener('load', start);
       viewport.removeEventListener('scroll', schedule);
-      viewport.removeEventListener('load', schedule, true);
+      viewport.removeEventListener('wheel', wheel);
       observer.disconnect();
-      clearTimeout(timer);
-      if (idle !== undefined) window.cancelIdleCallback(idle);
+      cancelAnimationFrame(frame);
+      stopAnimation();
     };
   }, [works]);
 
-  const stopDragAnimation = () => {
-    if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
-    dragFrameRef.current = null;
-  };
+  // Works develop from grey as the section scrolls into view: the motion is a response to the visitor.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    // Observe the unclipped list item; the clipped button itself has no visible area to intersect.
+    const items = [...section.querySelectorAll<HTMLElement>('.wow-gallery-item')];
+    // Phones get a static grid: a reveal there risked empty tiles after a fast fling.
+    if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce), (max-width:760px)').matches) { items.forEach(item => item.classList.add('is-revealed')); return; }
+    // Works already on screen at load stay put; the clip only applies once JS runs, so the static HTML shows everything.
+    const fold = window.innerHeight;
+    items.forEach(item => { if (item.getBoundingClientRect().top < fold) item.classList.add('is-revealed'); });
+    section.classList.add('is-animated');
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.add('is-revealed'); observer.unobserve(entry.target); }
+    }, { rootMargin: '0px 0px -10% 0px', threshold: .1 });
+    items.forEach((item, index) => { item.style.setProperty('--reveal-delay', `${Math.min(index % 6, 5) * 70}ms`); observer.observe(item); });
+    return () => observer.disconnect();
+  }, [works]);
 
-  const startDragAnimation = () => {
-    let previous = performance.now();
-    const animate = (time: number) => {
-      const drag = dragRef.current;
-      const viewport = viewportRef.current;
-      const width = loopWidthRef.current;
-      if (!drag || !viewport || !width) { dragFrameRef.current = null; return; }
-      const elapsed = Math.min(time - previous, 48);
-      previous = time;
-      const follow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1 - Math.exp(-elapsed / 35);
-      drag.position += (drag.target - drag.position) * follow;
-      viewport.scrollLeft = wrap(drag.position, width);
-      dragFrameRef.current = requestAnimationFrame(animate);
-    };
-    dragFrameRef.current = requestAnimationFrame(animate);
-  };
-
-  const stopInertia = () => {
-    if (inertiaFrameRef.current !== null) cancelAnimationFrame(inertiaFrameRef.current);
-    inertiaFrameRef.current = null;
-  };
-
-  const startInertia = (initialVelocity: number, remainingDistance = 0) => {
+  const glide = (distance: number) => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    if (!initialVelocity && Math.abs(remainingDistance) < 0.1) return;
-    let velocity = initialVelocity;
-    let position = viewport.scrollLeft;
-    let remaining = remainingDistance;
-    let lastTime = performance.now();
-    const animate = (time: number) => {
-      const width = loopWidthRef.current;
-      if (!width) { inertiaFrameRef.current = null; return; }
-      const elapsed = Math.min(time - lastTime, 48);
-      const step = momentumStep(velocity, elapsed);
-      const nextRemaining = remaining * Math.exp(-elapsed / 55);
-      lastTime = time;
-      // Accumulate fractional movement internally so native scroll rounding
-      // doesn't cut the slow tail of the release animation short.
-      position += step.distance + remaining - nextRemaining;
-      remaining = nextRemaining;
-      viewport.scrollLeft = wrap(position, width);
-      velocity = step.velocity;
-      inertiaFrameRef.current = velocity || Math.abs(remaining) > 0.1 ? requestAnimationFrame(animate) : null;
-    };
-    inertiaFrameRef.current = requestAnimationFrame(animate);
-  };
-
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    const firstGroup = viewport?.querySelector('.wow-gallery-group');
-    if (!viewport || !firstGroup || !works.length) return;
-
-    const desktop = matchMedia('(min-width: 761px) and (hover: hover) and (pointer: fine)');
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-    let frame = 0;
-    let lastTime = 0;
-    let subpixelDistance = 0;
-    let touching = false;
-    let resumeAt = 0;
-    let autoScrollPosition: number | null = null;
-    let previousViewportSize: {width:number;height:number} | null = null;
-    const nativeScroll = matchMedia('(max-width:760px), (pointer:coarse)');
-    const trackMouse = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
-      const previous = lastPointerRef.current;
-      const moved = previous
-        ? previous.x !== event.clientX || previous.y !== event.clientY
-        : event.movementX !== 0 || event.movementY !== 0;
-      lastPointerRef.current = { x: event.clientX, y: event.clientY };
-      if (desktop.matches && moved && event.target instanceof Node && sectionRef.current?.contains(event.target)) hoverPauseRef.current = true;
-    };
-    const leaveGallery = () => { hoverPauseRef.current = false; };
-    const section = sectionRef.current;
-    const pauseTouch = () => {
-      if (!nativeScroll.matches) return;
-      touching = true;
-      autoScrollPosition = null;
-    };
-    const releaseTouch = () => {
-      touching = false;
-      resumeAt = performance.now() + 2000;
-    };
-    const pauseNativeScroll = () => {
-      if (nativeScroll.matches && (autoScrollPosition === null || Math.abs(viewport.scrollLeft - autoScrollPosition) > 1)) {
-        resumeAt = performance.now() + 2000;
-      }
-    };
-    const measure = () => {
-      const width = firstGroup.getBoundingClientRect().width;
-      if (!width) return;
-      const previous = loopWidthRef.current;
-      const size={width:viewport.clientWidth,height:viewport.clientHeight};
-      const resized=previousViewportSize && (previousViewportSize.width!==size.width || previousViewportSize.height!==size.height);
-      // Reserve intrinsic media ratios in the published page. Only a viewport
-      // resize may scale the position; loading a neighbour must never move it.
-      if (resized && previous && previous !== width) viewport.scrollLeft *= width / previous;
-      previousViewportSize=size;
-      loopWidthRef.current = width;
-    };
-    const normalize = () => {
-      const width = loopWidthRef.current;
-      if (desktop.matches && width && viewport.scrollLeft >= width) viewport.scrollLeft -= width;
-    };
-    const advance = (time: number) => {
-      const elapsed = lastTime ? Math.min(time - lastTime, 64) : 0;
-      lastTime = time;
-      const width = loopWidthRef.current;
-      const inputReady = nativeScroll.matches
-        ? !touching && time >= resumeAt
-        : desktop.matches && !hoverPauseRef.current && !sectionRef.current?.querySelector(':focus-visible');
-      if (width && pageActive && !motionPaused && inputReady && !reducedMotion.matches && active === null && !dragRef.current && controlFrameRef.current === null && inertiaFrameRef.current === null && document.visibilityState === 'visible') {
-        subpixelDistance += elapsed * 0.022;
-        const pixels = Math.floor(subpixelDistance);
-        if (pixels) {
-          subpixelDistance -= pixels;
-          viewport.scrollLeft = Math.floor(wrap(Math.round(viewport.scrollLeft) + pixels, width));
-          autoScrollPosition = viewport.scrollLeft;
-        }
-      }
-      frame = requestAnimationFrame(advance);
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(viewport);
-    observer.observe(firstGroup);
-    const visibility = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && pageActive && !frame) {
-        lastTime = 0;
-        frame = requestAnimationFrame(advance);
-      } else if (!entry.isIntersecting && frame) {
-        cancelAnimationFrame(frame);
-        frame = 0;
-      }
-    });
-    visibility.observe(viewport);
-    viewport.addEventListener('scroll', normalize, { passive: true });
-    viewport.addEventListener('scroll', pauseNativeScroll, { passive: true });
-    viewport.addEventListener('pointerdown', pauseTouch, { passive: true });
-    window.addEventListener('pointerup', releaseTouch, { passive: true });
-    window.addEventListener('pointercancel', releaseTouch, { passive: true });
-    window.addEventListener('pointermove', trackMouse, { passive: true });
-    section?.addEventListener('pointerleave', leaveGallery);
-    measure();
-    return () => {
-      observer.disconnect();
-      visibility.disconnect();
-      viewport.removeEventListener('scroll', normalize);
-      viewport.removeEventListener('scroll', pauseNativeScroll);
-      viewport.removeEventListener('pointerdown', pauseTouch);
-      window.removeEventListener('pointerup', releaseTouch);
-      window.removeEventListener('pointercancel', releaseTouch);
-      window.removeEventListener('pointermove', trackMouse);
-      section?.removeEventListener('pointerleave', leaveGallery);
-      cancelAnimationFrame(frame);
-      if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
-      controlFrameRef.current = null;
-      if (inertiaFrameRef.current !== null) cancelAnimationFrame(inertiaFrameRef.current);
-      inertiaFrameRef.current = null;
-      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
-      dragFrameRef.current = null;
-      dragRef.current = null;
-    };
-  }, [works, active, pageActive, motionPaused]);
-
-  const move = (direction: number) => {
-    const viewport = viewportRef.current;
-    const width = loopWidthRef.current;
-    if (!viewport || !width) return;
-    stopInertia();
-    if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
+    stopAnimation();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { viewport.scrollLeft += distance; return; }
     const start = viewport.scrollLeft;
-    const distance = direction * viewport.clientWidth * 0.75;
-    if (matchMedia('(max-width:760px), (pointer:coarse)').matches) {
-      viewport.scrollBy({ left: distance, behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth' });
-      controlFrameRef.current = null;
-      return;
-    }
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      viewport.scrollLeft = wrap(start + distance, width);
-      controlFrameRef.current = null;
-      return;
-    }
     const started = performance.now();
     const animate = (time: number) => {
       const progress = Math.min((time - started) / 650, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      viewport.scrollLeft = wrap(start + distance * eased, width);
-      controlFrameRef.current = progress < 1 ? requestAnimationFrame(animate) : null;
+      viewport.scrollLeft = start + distance * (1 - Math.pow(1 - progress, 3));
+      frameRef.current = progress < 1 ? requestAnimationFrame(animate) : null;
     };
-    controlFrameRef.current = requestAnimationFrame(animate);
+    frameRef.current = requestAnimationFrame(animate);
+  };
+  const move = (direction: number) => { const viewport = viewportRef.current; if (viewport) glide(direction * viewport.clientWidth * .7); };
+
+  const startInertia = (initialVelocity: number) => {
+    const viewport = viewportRef.current;
+    if (!viewport || !initialVelocity) return;
+    let velocity = initialVelocity;
+    let position = viewport.scrollLeft;
+    let last = performance.now();
+    const animate = (time: number) => {
+      const step = momentumStep(velocity, Math.min(time - last, 48));
+      last = time;
+      position += step.distance;
+      viewport.scrollLeft = position;
+      velocity = step.velocity;
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      frameRef.current = velocity && position > 0 && position < max ? requestAnimationFrame(animate) : null;
+    };
+    frameRef.current = requestAnimationFrame(animate);
   };
 
   return <section className="wow-works" id="works" aria-labelledby="works-title" ref={sectionRef}>
-    <div className="wow-section-head wow-shell">
+    <div className="wow-works-head wow-shell">
       <div><p className="wow-index">ПОРТФОЛІО</p><h2 id="works-title">РОБОТИ<span>.</span></h2></div>
-      <div className="wow-works-side">
-        <button className="wow-action wow-motion-toggle" type="button" aria-pressed={motionPaused} aria-label={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} title={motionPaused ? 'Увімкнути рух' : 'Зупинити рух'} onClick={() => onMotionPausedChange(!motionPaused)}>{motionPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}<span className="sr-only">{motionPaused ? 'Увімкнути рух' : 'Зупинити рух'}</span></button>
+      <div className="wow-works-tools">
+        {filters.length > 0 && <fieldset className="wow-filters"><legend className="sr-only">Фільтр робіт за стилем</legend>
+          <button type="button" aria-pressed={filter === null} onClick={() => onFilterChange(null)}>Усі <small>{total}</small></button>
+          {filters.map(({ tag, count }) => <button type="button" key={tag} aria-pressed={filter === tag} onClick={() => onFilterChange(filter === tag ? null : tag)}>{tag} <small>{count}</small></button>)}
+        </fieldset>}
+        <div className="wow-works-nav" aria-hidden={works.length < 2}>
+          <span className="wow-works-count" aria-hidden="true">{pad(Math.min(position.first, works.length))} <i>/</i> {pad(works.length)}</span>
+          <span className="wow-works-progress" aria-hidden="true"><span style={{ transform: `scaleX(${Math.max(.04, position.progress)})` }} /></span>
+          <button className="wow-icon-button" type="button" aria-label="Попередні роботи" disabled={position.start} onClick={() => move(-1)}><ArrowLeft size={22} strokeWidth={1.6} aria-hidden="true" /></button>
+          <button className="wow-icon-button" type="button" aria-label="Наступні роботи" disabled={position.end} onClick={() => move(1)}><ArrowRight size={22} strokeWidth={1.6} aria-hidden="true" /></button>
+        </div>
       </div>
     </div>
-    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The viewport is keyboard-scrollable and contains focusable photo buttons. */}
-    <section className="wow-gallery-viewport" ref={viewportRef} tabIndex={0} aria-roledescription="carousel" aria-label="Роботи Павла, гортайте горизонтально" onKeyDown={event => {
+    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- The strip is keyboard-scrollable and contains focusable photo buttons. */}
+    <section className="wow-gallery-viewport" ref={viewportRef} tabIndex={0} aria-label={`Роботи Павла${filter ? `: ${filter.toLowerCase()}` : ''}, ${works.length}`} onKeyDown={event => {
       if (event.target !== event.currentTarget) return;
-      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-        event.preventDefault();
-        move(event.key === 'ArrowLeft' ? -1 : 1);
-      }
-    }} onMouseDown={event => { if (!matchMedia('(max-width:760px), (pointer:coarse)').matches) event.preventDefault(); }} onPointerDown={event => {
-      if (!event.isPrimary || event.button !== 0 || event.pointerType !== 'mouse' || matchMedia('(max-width:760px), (pointer:coarse)').matches) return;
-      // Focus the carousel without asking the browser to reveal a whole photo.
-      if (event.pointerType === 'mouse') event.currentTarget.focus({ preventScroll: true });
-      stopInertia();
-      stopDragAnimation();
-      if (controlFrameRef.current !== null) cancelAnimationFrame(controlFrameRef.current);
-      controlFrameRef.current = null;
-      dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startScroll: event.currentTarget.scrollLeft, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0, moved: false, position: event.currentTarget.scrollLeft, target: event.currentTarget.scrollLeft };
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); move(event.key === 'ArrowLeft' ? -1 : 1); }
+    }} onMouseDown={event => {
+      // Mouse drags must not focus the strip: focus would draw the keyboard outline. Tab still reaches it.
+      if (event.button === 0 && !matchMedia('(max-width:760px)').matches) event.preventDefault();
+    }} onPointerDown={event => {
+      if (!event.isPrimary || event.button !== 0 || event.pointerType !== 'mouse' || matchMedia('(max-width:760px)').matches) return;
+      stopAnimation();
+      dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startScroll: event.currentTarget.scrollLeft, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0, moved: false };
     }} onPointerMove={event => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
       const delta = event.clientX - drag.startX;
-      if (!drag.moved && (Math.abs(delta) < 6 || (event.pointerType === 'touch' && Math.abs(delta) <= Math.abs(event.clientY - drag.startY) * 1.2))) return;
-      if (!drag.moved) {
-        drag.moved = true;
-        event.currentTarget.setPointerCapture(event.pointerId);
-        event.currentTarget.classList.add('is-dragging');
-        startDragAnimation();
-      }
-      event.preventDefault();
+      if (!drag.moved && Math.abs(delta) < 6) return;
+      if (!drag.moved) { drag.moved = true; event.currentTarget.setPointerCapture(event.pointerId); event.currentTarget.classList.add('is-dragging'); }
       const elapsed = event.timeStamp - drag.lastTime;
-      if (elapsed > 0) {
-        const instantaneous = -(event.clientX - drag.lastX) / elapsed;
-        drag.velocity = Math.max(-2.4, Math.min(2.4, drag.velocity * 0.35 + instantaneous * 0.65));
-      }
+      if (elapsed > 0) drag.velocity = Math.max(-2.4, Math.min(2.4, drag.velocity * .35 - (event.clientX - drag.lastX) / elapsed * .65));
       drag.lastX = event.clientX;
       drag.lastTime = event.timeStamp;
-      drag.target = drag.startScroll - delta;
+      event.currentTarget.scrollLeft = drag.startScroll - delta;
     }} onPointerUp={event => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== event.pointerId) return;
       dragRef.current = null;
-      stopDragAnimation();
       event.currentTarget.classList.remove('is-dragging');
       if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-      if (drag.moved) {
-        ignoreClickRef.current = true;
-        window.setTimeout(() => { ignoreClickRef.current = false; }, 0);
-        const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reducedMotion && loopWidthRef.current) event.currentTarget.scrollLeft = wrap(drag.target, loopWidthRef.current);
-        startInertia(releaseVelocity(drag.velocity, event.timeStamp - drag.lastTime, reducedMotion), reducedMotion ? 0 : drag.target - drag.position);
-      }
+      if (!drag.moved) return;
+      ignoreClickRef.current = true;
+      window.setTimeout(() => { ignoreClickRef.current = false; }, 0);
+      startInertia(releaseVelocity(drag.velocity, event.timeStamp - drag.lastTime, matchMedia('(prefers-reduced-motion: reduce)').matches));
     }} onPointerCancel={event => {
       dragRef.current = null;
-      stopDragAnimation();
       event.currentTarget.classList.remove('is-dragging');
     }} onClickCapture={event => {
       if (!ignoreClickRef.current) return;
@@ -332,14 +178,14 @@ export default function WorksCarousel({ works, onOpen, active, pageActive, motio
       event.stopPropagation();
       ignoreClickRef.current = false;
     }}>
-      <div className="wow-gallery">{[0, 1].map(copy => <div className="wow-gallery-group" key={copy} aria-hidden={copy === 1 ? 'true' : undefined}>
-        {works.map((work, index) => <button className={`wow-work${active === index ? ' is-open' : ''}`} key={work.id} type="button" tabIndex={copy === 1 ? -1 : undefined} onClick={() => onOpen(index)} aria-label={`Відкрити ${work.videoSrc ? 'відео' : 'фото'}: ${work.alt}`} onDragStart={event => event.preventDefault()}>
-          <WorkPreview work={work} eager={copy === 0 && index < 3 || preparedMedia.has(index)} prepared={preparedMedia.has(index)} disabled={active !== null} duplicate={copy === 1} />
-          <span className="wow-work-caption"><span>{work.category}</span><ArrowUpRight size={22} aria-hidden="true" /></span>
-        </button>)}
-      </div>)}</div>
+      <ul className="wow-gallery" key={filter ?? 'all'}>
+        {works.map((work, index) => <li key={work.id} className="wow-gallery-item">
+          <button className={`wow-work${active === index ? ' is-open' : ''}${work.videoSrc ? ' is-video' : ''}`} type="button" onClick={() => onOpen(index)} aria-label={`Відкрити ${work.videoSrc ? 'відео' : 'фото'}: ${workTitle(work)}`} onDragStart={event => event.preventDefault()}>
+            <WorkPreview work={work} eager={index < 3} disabled={active !== null} />
+            <span className="wow-work-caption"><span><strong>{workTitle(work)}</strong><small>{work.videoSrc ? 'Відео' : work.category}</small></span><ArrowUpRight size={20} aria-hidden="true" /></span>
+          </button>
+        </li>)}
+      </ul>
     </section>
-    <button className="wow-gallery-edge wow-gallery-edge-prev" type="button" aria-label="Попередні роботи" onClick={() => move(-1)}><ArrowLeft size={34} strokeWidth={1.7} aria-hidden="true" /></button>
-    <button className="wow-gallery-edge wow-gallery-edge-next" type="button" aria-label="Наступні роботи" onClick={() => move(1)}><ArrowRight size={34} strokeWidth={1.7} aria-hidden="true" /></button>
   </section>;
 }
