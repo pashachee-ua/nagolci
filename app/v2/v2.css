@@ -210,7 +210,10 @@
 /* ---------- Contact ---------- */
 .wow-contact-copy>.wow-contact-primary { width:auto; min-width:min(100%,320px); max-width:100%; margin-bottom:0; }
 /* Contact order: write (Telegram, then phone/email), then visit (address, hours, map), then socials. */
-.wow-contact-methods { margin-top:24px; }
+.wow-contact-methods { margin-top:36px; }
+/* The address opens the map too; it reads as a heading until hovered. */
+.wow-address a { color:inherit; text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:1px; text-underline-offset:6px; transition:color .25s,text-decoration-color .25s; }
+.wow-address a:is(:hover,:focus-visible) { color:#fff; text-decoration-color:var(--wow-red); }
 .wow-contact-methods>a:last-child { border-bottom:1px solid #474747; }
 .wow-contact-methods>a>svg:first-child { color:var(--wow-red); }
 .wow-visit { margin-top:40px; }

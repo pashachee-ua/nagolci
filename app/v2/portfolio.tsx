@@ -159,7 +159,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
           {c.email && <a href={`mailto:${c.email}`}><MailFilledIcon /><span>{c.email}</span><ArrowUpRight size={19} aria-hidden="true" /></a>}
         </div>}
         <div className="wow-visit">
-          <p className="wow-address"><BrandText text={c.address.replace(/,[ \t]+(?=\d)/gu, ',\u00a0')} /></p>
+          <p className="wow-address">{c.mapsUrl ? <a href={c.mapsUrl} target="_blank" rel="noreferrer" aria-label={`${c.address} — відкрити на карті`}><BrandText text={c.address.replace(/,[ \t]+(?=\d)/gu, ',\u00a0')} /></a> : <BrandText text={c.address.replace(/,[ \t]+(?=\d)/gu, ',\u00a0')} />}</p>
           {c.openingHours && <p className="wow-hours"><Clock size={18} aria-hidden="true" />{c.openingHours}</p>}
           {c.mapsUrl && <a className="wow-text-link" href={c.mapsUrl} target="_blank" rel="noreferrer"><MapPinFilledIcon /><span>Як дістатися</span><ArrowUpRight size={18} aria-hidden="true" /></a>}
         </div>
