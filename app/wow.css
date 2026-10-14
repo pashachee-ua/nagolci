@@ -123,6 +123,9 @@ body { background:var(--wow-ink); color:var(--wow-cream); overflow-x:clip; }
 .wow-contact-copy { width:54%; position:relative; z-index:1; }
 .wow-contact-copy h2 { margin-bottom:55px; }
 .wow-address { font-size:22px; font-weight:500; }
+/* The address opens the map too; it reads as text until hovered. */
+.wow-address a { color:inherit; text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:1px; text-underline-offset:6px; transition:color .25s,text-decoration-color .25s; }
+.wow-address a:is(:hover,:focus-visible) { color:var(--wow-red); text-decoration-color:var(--wow-red); }
 .wow-hours { display:flex; align-items:center; gap:10px; margin-top:12px; color:#c4b9b4; font-size:15px; }
 .wow-contact-copy .wow-text-link { margin-top:18px; }
 .wow-contact-copy .wow-text-link>span { margin-right:auto; min-width:0; }
