@@ -31,8 +31,15 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
  assert.match(sitemap,/<loc>https:\/\/nagolci\.com\/<\/loc><lastmod>2026-10-07<\/lastmod>/);
  assert.match(sitemap,/<image:loc>https:\/\/nagolci\.com\/images\/work-31\.webp<\/image:loc>/);
  // Gallery images describe the work for image search, and only the hero is preloaded (and so Early-Hinted).
- assert.match(html,/<img src="\/images\/work-31\.webp" alt="[^"]+— тату/);
- assert.deepEqual([...html.matchAll(/<link rel="preload" as="image" href="([^"]+)"/g)].map(m=>m[1]),['/logo.svg','/images/work-25.webp']);
+ assert.match(html,/<img src="\/images\/work-31\.webp"[^>]* alt="[^"]+— тату/);
+ // Only the logo and the hero are preloaded; the hero preload is responsive and high priority.
+ const preloads=[...html.matchAll(/<link rel="preload" as="image"[^>]*>/g)].map(m=>m[0]);
+ assert.equal(preloads.length,2);assert.match(preloads[0],/href="\/logo\.svg"/);
+ assert.match(preloads[1],/imageSrcSet="[^"]*\/img\/[a-f0-9]{16}-989\.webp 989w"/);assert.match(preloads[1],/fetchPriority="high"/);
+ // Photos ship responsive copies; hashed copies and build assets are cached for a year.
+ assert.match(html,/<img src="\/images\/work-31\.webp" srcSet="\/img\/[a-f0-9]{16}-480\.webp 480w, [^"]+\/img\/[a-f0-9]{16}-1280\.webp 1280w"/);
+ assert.match(headers,/\/img\/\*\n  Cache-Control: public, max-age=31536000, immutable/);
+ assert.match(headers,/\/assets\/\*\n  Cache-Control: public, max-age=31536000, immutable/);
  assert.ok(html.includes('<div id="top" aria-hidden="true"></div><header class="wow-header">'));
  for(const name of ['cormorant-garamond-600','golos-text-variable']) {
   assert.ok(html.includes(`<link rel="preload" href="/fonts/${name}.woff2" as="font" type="font/woff2" crossorigin>`));

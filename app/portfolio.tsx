@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Clock, Play } from 'lucide-react';
 import type { SiteContent } from '@/lib/content';
 import Reviews from './reviews';
-import { galleryMedia, processMedia, workTags, type ImageDimensions, type PortfolioMedia } from '@/lib/portfolio-media';
+import { galleryMedia, processMedia, processPhoto, srcSet, workTags, type ImageDimensions, type ImageVariants, type PortfolioMedia } from '@/lib/portfolio-media';
 import { bookingLink, telegramHandle, workDraft } from '@/lib/booking';
 import TelegramIcon from './telegram-icon';
 import TickerStar from './ticker-star';
@@ -95,11 +95,16 @@ function Ticker() {
   </div>;
 }
 
-export default function Portfolio({ content: c, year = new Date().getFullYear(), imageDimensions }: { content: SiteContent; year?: number; imageDimensions?:ImageDimensions }) {
+// Rendered widths in CSS px, measured at 360-1920px: the browser picks the smallest copy that fills them.
+const heroSizes = '(max-width:760px) 100vw, 60vw';
+const sectionSizes = '(max-width:999px) 100vw, 72vw';
+
+export default function Portfolio({ content: c, year = new Date().getFullYear(), imageDimensions, imageVariants }: { content: SiteContent; year?: number; imageDimensions?:ImageDimensions; imageVariants?:ImageVariants }) {
   const [active, setActive] = useState<number | null>(null);
   const [processOpen, setProcessOpen] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
-  const works = useMemo(() => galleryMedia(c.works).map(work=>({...work,...imageDimensions?.[work.src]})), [c.works,imageDimensions]);
+  const works = useMemo(() => galleryMedia(c.works).map(work=>{ const size=imageDimensions?.[work.src]; return {...work,...size,srcSet:srcSet(work.src,imageVariants,size?.width)}; }), [c.works,imageDimensions,imageVariants]);
+  const responsive = (src: string, sizes: string) => { const set = srcSet(src, imageVariants, imageDimensions?.[src]?.width); return set ? { srcSet: set, sizes } : {}; };
   const shownWorks = useMemo(() => filter ? works.filter(work => workTags(work).includes(filter)) : works, [works, filter]);
   const heroWork = c.works.find(work => work.id === '25') ?? c.works[0];
   const booking = bookingLink(c);
@@ -114,7 +119,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
 
     <main>
       <section className="wow-hero" aria-labelledby="hero-title">
-        <div className="wow-hero-visual" aria-hidden="true">{heroWork && <img src={heroWork.src} alt="" width="800" height="1000" fetchPriority="high" />}</div>
+        <div className="wow-hero-visual" aria-hidden="true">{heroWork && <img src={heroWork.src} {...responsive(heroWork.src, heroSizes)} alt="" width="800" height="1000" fetchPriority="high" />}</div>
         <div className="wow-hero-inner">
           <div className="wow-hero-kicker"><span>NA GOLCI · КИЇВ</span><span>Тату-студія · Поділ</span></div>
           <h1 id="hero-title">ТАТУ <span>З</span> <br />ХАРАКТЕРОМ<span className="wow-title-stop">.</span></h1>
@@ -133,13 +138,13 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
       <WorksGallery works={shownWorks} total={works.length} allWorks={works} filter={filter} onFilterChange={changeFilter} onOpen={setActive} active={active} />
 
       <section className="wow-artist" id="artist" aria-labelledby="artist-title"><div className="wow-shell wow-artist-layout">
-        <div className="wow-artist-media"><img className="wow-portrait" src={c.portrait} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331" /></div>
+        <div className="wow-artist-media"><img className="wow-portrait" src={c.portrait} {...responsive(c.portrait, sectionSizes)} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331" /></div>
         <div className="wow-artist-copy"><p className="wow-index">МАЙСТЕР</p><h2 id="artist-title">ПРИВІТ, <br />Я <em>{c.name.toUpperCase()}</em><span>.</span></h2><div className="wow-bio">{biographyParagraphs.map((paragraph, index) => <p key={index}><BrandText text={paragraph} /></p>)}</div><div className="wow-artist-actions"><BookingAction link={booking} /><SocialLink href="https://www.instagram.com/anohin_pavlo/" label="Мій Instagram" platform="instagram" /></div></div>
       </div></section>
 
       <section className="wow-booking" id="price" aria-labelledby="price-title">
         <div className="wow-booking-content">
-          <figure className="wow-process-photo"><img src="/images/process.webp" alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
+          <figure className="wow-process-photo"><img src={processPhoto} {...responsive(processPhoto, sectionSizes)} alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
           <button type="button" className="wow-action wow-secondary wow-process-video-button" onClick={() => setProcessOpen(true)}><Play size={16} fill="currentColor" aria-hidden="true" /><span>Дивитися процес</span></button>
           <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ. <br /><span>МОЯ РОБОТА.</span></h2></div>
           <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Обговоримо ескіз і ціну, а потім разом оберемо дату сеансу.')}</p></div></li></ol>
@@ -151,7 +156,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
 
       <div className="wow-reviews"><Reviews reviews={c.reviews} /></div>
 
-      <section className="wow-contact" id="contact" aria-labelledby="contact-title"><div className="wow-shell wow-contact-layout"><div className="wow-contact-photo"><img src={c.studio} alt="Інтер’єр студії NA GOLCI" loading="lazy" width="1200" height="900" /></div><div className="wow-contact-copy">
+      <section className="wow-contact" id="contact" aria-labelledby="contact-title"><div className="wow-shell wow-contact-layout"><div className="wow-contact-photo"><img src={c.studio} {...responsive(c.studio, sectionSizes)} alt="Інтер’єр студії NA GOLCI" loading="lazy" width="1200" height="900" /></div><div className="wow-contact-copy">
         <p className="wow-index">ЗАХОДЬ У ГОСТІ</p><h2 id="contact-title">ЧЕКАЮ ТЕБЕ <br /><span>НА ПОДОЛІ.</span></h2>
         <BookingAction link={booking} label={booking.channel === 'telegram' ? 'Написати в Telegram' : 'Хочу тату'} className="wow-contact-primary" />
         {(c.phone || c.email || (booking.channel !== 'telegram' && c.telegram)) && <div className="wow-contact-methods">

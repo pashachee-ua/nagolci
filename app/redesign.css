@@ -326,3 +326,7 @@
 @media (max-width:760px) {
   .wow-footer-meta { align-items:center; }
 }
+
+/* Hero image: shorter, lighter entrance so the first screen is readable sooner (was 1.3s from near-black). */
+.wow-hero-visual img { animation-duration:.6s; animation-name:wow-image-in-soft; }
+@keyframes wow-image-in-soft { from { transform:scale(1.03); filter:saturate(.3) brightness(.55); } }

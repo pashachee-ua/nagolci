@@ -21,9 +21,11 @@ export async function checkArtifact(directory){
   const text=await readFile(file,'utf8');
   if(/\/api\/(?:content|media|upload|publications|build)(?:[\/"'\s]|$)|BUILD_TOKEN|PAGES_API_TOKEN|CF_ACCESS_CLIENT_SECRET|BEGIN (?:RSA |EC )?PRIVATE KEY|ghp_[A-Za-z0-9]{20,}/.test(text))throw new Error('Forbidden runtime API or secret marker');
   for(const secretName of ['BUILD_TOKEN','PAGES_API_TOKEN','PAGES_DEPLOY_HOOK','CF_ACCESS_CLIENT_SECRET']){const secret=process.env[secretName];if(secret&&secret.length>=16&&!secret.includes('REPLACE_')&&text.includes(secret))throw new Error('Forbidden secret value')}
-  if(extname(file)==='.html'){for(const match of text.matchAll(/(?:src|poster|href)="([^"]+)"/g))await resource(match[1],dirname(file))}
+  if(extname(file)==='.html'){for(const match of text.matchAll(/(?:src|poster|href)="([^"]+)"/g))await resource(match[1],dirname(file));
+   // Every candidate in srcset must exist, not only the src fallback.
+   for(const match of text.matchAll(/srcSet="([^"]+)"/gi))for(const candidate of match[1].split(','))await resource(candidate.trim().split(/\s+/)[0],dirname(file))}
   if(extname(file)==='.css'){for(const match of text.matchAll(/url\(\s*["']?([^"'\s)]+)["']?\s*\)/g))await resource(match[1],dirname(file))}
-  for(const match of text.matchAll(/["'](\/(?:images|videos|fonts|icons|media|assets)\/[^"'\\\s]+)["']/g))await resource(match[1],dirname(file));
+  for(const match of text.matchAll(/["'](\/(?:images|img|videos|fonts|icons|media|assets)\/[^"'\\\s]+)["']/g))await resource(match[1],dirname(file));
  }}
  await scan(root);
  return {revision:publication.revision};

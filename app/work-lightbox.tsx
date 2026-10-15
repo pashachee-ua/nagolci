@@ -42,7 +42,7 @@ export default function WorkLightbox({ works, active, onActiveChange, bookingFor
             if (direction) move(direction);
           }
         }} onPointerCancel={clear}>
-          {work.videoSrc ? <video key={work.id} className="full-work wow-full-video" src={work.videoSrc} poster={work.src} controls autoPlay muted playsInline preload="metadata" aria-label={work.alt} /> : <img className="full-work" src={work.src} alt={work.alt} draggable={false} />}
+          {work.videoSrc ? <video key={work.id} className="full-work wow-full-video" src={work.videoSrc} poster={work.src} controls autoPlay muted playsInline preload="metadata" aria-label={work.alt} /> : <img className="full-work" src={work.src} srcSet={work.srcSet} sizes={work.srcSet ? '100vw' : undefined} alt={work.alt} draggable={false} />}
         </figure>
         <div className="wow-lightbox-bar">
           <div className="wow-lightbox-meta">

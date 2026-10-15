@@ -33,7 +33,7 @@ export default function WorkPreview({ work, disabled }: { work: PortfolioMedia; 
   if(!work.videoSrc || disabled || event.pointerType!=='mouse' || !matchMedia('(hover:hover) and (pointer:fine)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   void video.current?.play().catch(()=>setPlaying(false));
  }} onPointerLeave={stop}>
-  <img src={work.src} alt={work.videoSrc ? `${workTitle(work)} — відео татуювання` : `${workTitle(work)} — тату, ${work.category.toLocaleLowerCase('uk')}`} loading="lazy" decoding="async" draggable={false} width={work.width ?? 800} height={work.height ?? 1000} style={work.width && work.height ? {aspectRatio:`${work.width} / ${work.height}`} : undefined} />
+  <img src={work.src} srcSet={work.srcSet} sizes={work.srcSet ? '(max-width:760px) 48vw, (max-width:1100px) 60vw, 34vw' : undefined} alt={work.videoSrc ? `${workTitle(work)} — відео татуювання` : `${workTitle(work)} — тату, ${work.category.toLocaleLowerCase('uk')}`} loading="lazy" decoding="async" draggable={false} width={work.width ?? 800} height={work.height ?? 1000} style={work.width && work.height ? {aspectRatio:`${work.width} / ${work.height}`} : undefined} />
   {work.videoSrc && <>{near && <video ref={video} className={`wow-work-preview${playing && !disabled?' is-playing':''}`} src={work.videoSrc} preload="metadata" muted loop playsInline aria-hidden="true" tabIndex={-1} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={stop}/>}<span className="wow-video-badge" aria-hidden="true"><Play size={14} fill="currentColor"/><span>Відео</span></span></>}
  </span>;
 }

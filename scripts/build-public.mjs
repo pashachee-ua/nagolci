@@ -44,7 +44,7 @@ try{
  await writeFile(resolve(staging,'_redirects'),'/v2 / 301\n/v2/ / 301\n/v2/* / 301\n');
  await writeFile(resolve(staging,'sitemap.xml'),sitemap(prepared.content,snapshot.createdAt));
  await writeFile(resolve(staging,'publication.json'),JSON.stringify({id:snapshot.id??null,revision:snapshot.revision,createdAt:snapshot.createdAt}));
- await writeFile(resolve(staging,'_headers'),'/publication.json\n  Cache-Control: no-store\n  X-Robots-Tag: noindex\n/\n  Cache-Control: no-cache\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Strict-Transport-Security: max-age=31536000\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n');
+ await writeFile(resolve(staging,'_headers'),'/publication.json\n  Cache-Control: no-store\n  X-Robots-Tag: noindex\n/\n  Cache-Control: no-cache\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Strict-Transport-Security: max-age=31536000\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/images/*\n  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400\n/img/*\n  Cache-Control: public, max-age=31536000, immutable\n/fonts/*\n  Cache-Control: public, max-age=2592000\n/videos/*\n  Cache-Control: public, max-age=2592000\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n');
  await rm(renderer,{recursive:true});await rm(resolve(staging,'.vite'),{recursive:true});
  await checkArtifact(staging);
  // Keep the previous artifact until a complete replacement is ready.

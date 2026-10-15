@@ -1,10 +1,24 @@
 import type { Work } from './content.ts';
 export type ImageDimensions = Record<string, {width:number;height:number}>;
-export type PortfolioMedia = Work & { videoSrc?: string; sourceUrl?: string; width?:number; height?:number };
+export type ImageVariant = { src: string; width: number };
+/** Resized copies per original path, generated at build time for srcset. */
+export type ImageVariants = Record<string, ImageVariant[]>;
+
+/** srcset for an original image: its re-encoded copies, plus the original only if no copy reaches its width. */
+export function srcSet(src: string, variants: ImageVariants | undefined, originalWidth?: number): string | undefined {
+ const copies = variants?.[src];
+ if (!copies?.length) return undefined;
+ const widest = Math.max(...copies.map(copy => copy.width));
+ const original = originalWidth && originalWidth > widest ? [`${src} ${originalWidth}w`] : [];
+ return [...copies.map(copy => `${copy.src} ${copy.width}w`), ...original].join(', ');
+}
+export type PortfolioMedia = Work & { videoSrc?: string; sourceUrl?: string; width?:number; height?:number; srcSet?:string };
 const videos: PortfolioMedia[] = [
  { id:'video-frog', src:'/images/video-frog.jpg', videoSrc:'/videos/frog.mp4', alt:'Samurai Frog — татуювання в русі', category:'Samurai Frog · відео', sourceUrl:'https://www.tiktok.com/@tattoo_nagolci/video/7482819910813469957' },
  { id:'video-ouroboros', src:'/images/video-ouroboros.jpg', videoSrc:'/videos/ouroboros.mp4', alt:'Механічний Уроборос на передпліччі', category:'Механічний Уроборос · відео', sourceUrl:'https://www.tiktok.com/@tattoo_nagolci/video/7344401172146474245' },
 ];
+/** Backdrop of the booking section; not editable, but resized at build like the editable photos. */
+export const processPhoto = '/images/process.webp';
 export const processMedia: PortfolioMedia = { id:'video-process', src:'/images/video-process.jpg', videoSrc:'/videos/process.mp4', alt:'Павло працює над татуюванням', category:'Робочий процес', sourceUrl:'https://www.tiktok.com/@tattoo_nagolci/video/7206109506512686342' };
 export const videoTag = 'Відео';
 
