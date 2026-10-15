@@ -117,7 +117,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
         <div className="wow-hero-visual" aria-hidden="true">{heroWork && <img src={heroWork.src} alt="" width="800" height="1000" fetchPriority="high" />}</div>
         <div className="wow-hero-inner">
           <div className="wow-hero-kicker"><span>NA GOLCI · КИЇВ</span><span>Тату-студія · Поділ</span></div>
-          <h1 id="hero-title">ТАТУ <span>З</span><br />ХАРАКТЕРОМ<span className="wow-title-stop">.</span></h1>
+          <h1 id="hero-title">ТАТУ <span>З</span> <br />ХАРАКТЕРОМ<span className="wow-title-stop">.</span></h1>
           <div className="wow-hero-bottom">
             <p>{formatIntro(c.intro)}</p>
             <div className="wow-hero-actions">
@@ -134,14 +134,14 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
 
       <section className="wow-artist" id="artist" aria-labelledby="artist-title"><div className="wow-shell wow-artist-layout">
         <div className="wow-artist-media"><img className="wow-portrait" src={c.portrait} alt="Павло, тату-майстер NA GOLCI" loading="lazy" width="1064" height="1331" /></div>
-        <div className="wow-artist-copy"><p className="wow-index">МАЙСТЕР</p><h2 id="artist-title">ПРИВІТ,<br />Я <em>{c.name.toUpperCase()}</em><span>.</span></h2><div className="wow-bio">{biographyParagraphs.map((paragraph, index) => <p key={index}><BrandText text={paragraph} /></p>)}</div><div className="wow-artist-actions"><BookingAction link={booking} /><SocialLink href="https://www.instagram.com/anohin_pavlo/" label="Мій Instagram" platform="instagram" /></div></div>
+        <div className="wow-artist-copy"><p className="wow-index">МАЙСТЕР</p><h2 id="artist-title">ПРИВІТ, <br />Я <em>{c.name.toUpperCase()}</em><span>.</span></h2><div className="wow-bio">{biographyParagraphs.map((paragraph, index) => <p key={index}><BrandText text={paragraph} /></p>)}</div><div className="wow-artist-actions"><BookingAction link={booking} /><SocialLink href="https://www.instagram.com/anohin_pavlo/" label="Мій Instagram" platform="instagram" /></div></div>
       </div></section>
 
       <section className="wow-booking" id="price" aria-labelledby="price-title">
         <div className="wow-booking-content">
           <figure className="wow-process-photo"><img src="/images/process.webp" alt="Павло працює над татуюванням у студії" loading="lazy" width="945" height="1280" /></figure>
           <button type="button" className="wow-action wow-secondary wow-process-video-button" onClick={() => setProcessOpen(true)}><Play size={16} fill="currentColor" aria-hidden="true" /><span>Дивитися процес</span></button>
-          <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ.<br /><span>МОЯ РОБОТА.</span></h2></div>
+          <div className="wow-booking-head"><p className="wow-index">ПОЧНЕМО?</p><h2 id="price-title">ТВОЯ ІДЕЯ. <br /><span>МОЯ РОБОТА.</span></h2></div>
           <div className="wow-booking-details"><h3>Запис і вартість</h3><p>{keepWordsTogether(c.price)}</p><ol className="wow-steps"><li><div><h4>Твоя ідея</h4><p>{keepWordsTogether('Розкажи, що хочеш набити. Можеш додати фото, які тобі подобаються.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Розмір і місце</h4><p>{keepWordsTogether('Напиши, де буде тату і якого приблизно розміру.')}</p></div><ArrowDown className="wow-step-arrow" size={22} strokeWidth={1.5} aria-hidden="true" /></li><li><div><h4>Ескіз і дата</h4><p>{keepWordsTogether('Обговоримо ескіз і ціну, а потім разом оберемо дату сеансу.')}</p></div></li></ol>
             <BookingAction link={booking} label={booking.channel === 'telegram' ? 'Написати в Telegram' : 'Хочу тату'} className="wow-booking-cta" />
             {booking.channel === 'telegram' && <p className="wow-booking-note">{keepWordsTogether('Відкриється чат зі шаблоном: залишиться дописати ідею, місце й розмір.')}</p>}
@@ -152,7 +152,7 @@ export default function Portfolio({ content: c, year = new Date().getFullYear(),
       <div className="wow-reviews"><Reviews reviews={c.reviews} /></div>
 
       <section className="wow-contact" id="contact" aria-labelledby="contact-title"><div className="wow-shell wow-contact-layout"><div className="wow-contact-photo"><img src={c.studio} alt="Інтер’єр студії NA GOLCI" loading="lazy" width="1200" height="900" /></div><div className="wow-contact-copy">
-        <p className="wow-index">ЗАХОДЬ У ГОСТІ</p><h2 id="contact-title">ЧЕКАЮ ТЕБЕ<br /><span>НА ПОДОЛІ.</span></h2>
+        <p className="wow-index">ЗАХОДЬ У ГОСТІ</p><h2 id="contact-title">ЧЕКАЮ ТЕБЕ <br /><span>НА ПОДОЛІ.</span></h2>
         <BookingAction link={booking} label={booking.channel === 'telegram' ? 'Написати в Telegram' : 'Хочу тату'} className="wow-contact-primary" />
         {(c.phone || c.email || (booking.channel !== 'telegram' && c.telegram)) && <div className="wow-contact-methods">
           {booking.channel !== 'telegram' && c.telegram && <a href={c.telegram} target="_blank" rel="noreferrer"><TelegramIcon /><span>Telegram: @{handle}</span><ArrowUpRight size={19} aria-hidden="true" /></a>}

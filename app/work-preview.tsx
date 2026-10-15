@@ -2,10 +2,14 @@
 /* eslint-disable next/no-img-element -- Local portfolio assets. */
 import { useEffect, useRef, useState } from 'react';
 import { Play } from 'lucide-react';
-import type { PortfolioMedia } from '@/lib/portfolio-media';
+import { workTitle, type PortfolioMedia } from '@/lib/portfolio-media';
 
-/** Video previews stay unrequested until the card approaches the viewport and a mouse can hover it. */
-export default function WorkPreview({ work, eager, disabled }: { work: PortfolioMedia; eager: boolean; disabled: boolean }) {
+/**
+ * Gallery images are always lazy: React turns non-lazy <img> into <link rel=preload>, which Cloudflare
+ * then sends as Early Hints ahead of the hero. Video previews stay unrequested until the card is near and
+ * a mouse can hover it.
+ */
+export default function WorkPreview({ work, disabled }: { work: PortfolioMedia; disabled: boolean }) {
  const frame = useRef<HTMLSpanElement>(null);
  const video = useRef<HTMLVideoElement>(null);
  const [playing,setPlaying] = useState(false);
@@ -29,7 +33,7 @@ export default function WorkPreview({ work, eager, disabled }: { work: Portfolio
   if(!work.videoSrc || disabled || event.pointerType!=='mouse' || !matchMedia('(hover:hover) and (pointer:fine)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   void video.current?.play().catch(()=>setPlaying(false));
  }} onPointerLeave={stop}>
-  <img src={work.src} alt="" loading={eager?'eager':'lazy'} decoding="async" draggable={false} width={work.width ?? 800} height={work.height ?? 1000} style={work.width && work.height ? {aspectRatio:`${work.width} / ${work.height}`} : undefined} />
+  <img src={work.src} alt={work.videoSrc ? `${workTitle(work)} — відео татуювання` : `${workTitle(work)} — тату, ${work.category.toLocaleLowerCase('uk')}`} loading="lazy" decoding="async" draggable={false} width={work.width ?? 800} height={work.height ?? 1000} style={work.width && work.height ? {aspectRatio:`${work.width} / ${work.height}`} : undefined} />
   {work.videoSrc && <>{near && <video ref={video} className={`wow-work-preview${playing && !disabled?' is-playing':''}`} src={work.videoSrc} preload="metadata" muted loop playsInline aria-hidden="true" tabIndex={-1} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={stop}/>}<span className="wow-video-badge" aria-hidden="true"><Play size={14} fill="currentColor"/><span>Відео</span></span></>}
  </span>;
 }

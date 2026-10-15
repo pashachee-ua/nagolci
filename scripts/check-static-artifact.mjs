@@ -3,7 +3,10 @@ import {resolve,dirname,sep,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 export async function checkArtifact(directory){
  const root=await realpath(directory),html=await readFile(resolve(root,'index.html'),'utf8');
- if(!html.startsWith('<!doctype html>')||!html.includes('id="root"')||!html.includes('NA GOLCI')||!html.includes('id="site-snapshot"')||!html.includes('noindex'))throw new Error('Incomplete public HTML');
+ if(!html.startsWith('<!doctype html>')||!html.includes('id="root"')||!html.includes('NA GOLCI')||!html.includes('id="site-snapshot"'))throw new Error('Incomplete public HTML');
+ // The published page is the indexable one: a stray noindex would silently drop the site from search.
+ if(/<meta[^>]+name="robots"[^>]+noindex/i.test(html))throw new Error('Public page must be indexable');
+ if(!html.includes('<link rel="canonical" href="https://nagolci.com/">')||!html.includes('application/ld+json'))throw new Error('Missing canonical or structured data');
  const publication=JSON.parse(await readFile(resolve(root,'publication.json'),'utf8'));
  if(!Number.isSafeInteger(publication.revision)||publication.revision<0)throw new Error('Invalid publication manifest');
  async function resource(value,base=root){

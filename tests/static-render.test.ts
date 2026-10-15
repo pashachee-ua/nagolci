@@ -16,9 +16,23 @@ test('static build includes real content, safe snapshot JSON and no draft API',(
  assert.match(notFound, /Сторінку не знайдено/);
  assert.match(notFound, /href="\/"/);
  assert.match(notFound, /content="noindex, nofollow"/);
- assert.match(html, /content="noindex, nofollow"/);
- assert.match(readFileSync('dist/public/_headers','utf8'), /X-Robots-Tag: noindex, nofollow/);
- assert.equal(readFileSync('dist/public/robots.txt','utf8'), 'User-agent: *\nAllow: /\n');
+ // Production is indexable; only the 404 page and the *.pages.dev mirror stay out of search.
+ assert.doesNotMatch(html, /name="robots"/);
+ const headers=readFileSync('dist/public/_headers','utf8');
+ assert.doesNotMatch(headers.split('https://')[0], /X-Robots-Tag: noindex, nofollow/);
+ assert.match(headers, /https:\/\/:project\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
+ assert.equal(readFileSync('dist/public/robots.txt','utf8'), 'User-agent: *\nAllow: /\n\nSitemap: https://nagolci.com/sitemap.xml\n');
+ assert.ok(html.includes('<link rel="canonical" href="https://nagolci.com/">'));
+ assert.ok(html.includes('<meta property="og:image" content="https://nagolci.com/images/og.jpg">'));
+ const ld=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
+ assert.equal(ld['@graph'][0]['@type'],'TattooParlor');assert.equal(ld['@graph'][0].telephone,'+380732597665');
+ assert.ok(!JSON.stringify(ld).includes('aggregateRating'));
+ const sitemap=readFileSync('dist/public/sitemap.xml','utf8');
+ assert.match(sitemap,/<loc>https:\/\/nagolci\.com\/<\/loc><lastmod>2026-10-07<\/lastmod>/);
+ assert.match(sitemap,/<image:loc>https:\/\/nagolci\.com\/images\/work-31\.webp<\/image:loc>/);
+ // Gallery images describe the work for image search, and only the hero is preloaded (and so Early-Hinted).
+ assert.match(html,/<img src="\/images\/work-31\.webp" alt="[^"]+— тату/);
+ assert.deepEqual([...html.matchAll(/<link rel="preload" as="image" href="([^"]+)"/g)].map(m=>m[1]),['/logo.svg','/images/work-25.webp']);
  assert.ok(html.includes('<div id="top" aria-hidden="true"></div><header class="wow-header">'));
  for(const name of ['cormorant-garamond-600','golos-text-variable']) {
   assert.ok(html.includes(`<link rel="preload" href="/fonts/${name}.woff2" as="font" type="font/woff2" crossorigin>`));

@@ -109,7 +109,7 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
       <div><p className="wow-index">ДОСВІД КЛІЄНТІВ</p><h2 id="reviews-title">ВІДГУКИ<span>.</span></h2></div>
       <div className="reviews-summary">
         <a className="reviews-score" href={reviewsUrl} target="_blank" rel="noreferrer" aria-label={`Рейтинг ${reviewsSummary.rating} з 5, ${reviewsSummary.count} відгуки в Google. Відкрити всі відгуки`}>
-          <strong>{reviewsSummary.rating}</strong>
+          <strong>{reviewsSummary.rating}</strong>{' '}
           <span><span className="reviews-score-stars" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <Star key={index} size={15} fill="currentColor" />)}</span><span>{reviewsSummary.count} відгуки в <span className="reviews-score-tail">Google<ArrowUpRight size={14} aria-hidden="true" /></span></span></span>
         </a>
         <div className="reviews-nav">

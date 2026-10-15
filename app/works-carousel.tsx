@@ -181,7 +181,7 @@ export default function WorksGallery({ works, allWorks, total, filter, onFilterC
       <ul className="wow-gallery" key={filter ?? 'all'}>
         {works.map((work, index) => <li key={work.id} className="wow-gallery-item">
           <button className={`wow-work${active === index ? ' is-open' : ''}${work.videoSrc ? ' is-video' : ''}`} type="button" onClick={() => onOpen(index)} aria-label={`Відкрити ${work.videoSrc ? 'відео' : 'фото'}: ${workTitle(work)}`} onDragStart={event => event.preventDefault()}>
-            <WorkPreview work={work} eager={index < 3} disabled={active !== null} />
+            <WorkPreview work={work} disabled={active !== null} />
             <span className="wow-work-caption"><span><strong>{workTitle(work)}</strong><small>{work.videoSrc ? 'Відео' : work.category}</small></span><ArrowUpRight size={20} aria-hidden="true" /></span>
           </button>
         </li>)}
